@@ -22,7 +22,6 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     public bool canCheck;//有人按門鈴時候，關門可以查看，一旦開門就不能查看，此變數表示該們可以被查看
     public int CheckPlayerId;
     private bool isWolf = false;
-    public AudioClip doorBell;
     // Start is called before the first frame update
     void Start()
     {
@@ -54,6 +53,15 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
         }
         if(alter){//角色靠近門旁邊
             DoorBtn.SetActive(true);
+            if(Input.GetKeyUp(KeyCode.E)){
+                SwitchDoor();
+            }
+            if(Input.GetKeyUp(KeyCode.R) && LockBtn.activeInHierarchy){
+                LockDoor();
+            }
+            else if(Input.GetKeyUp(KeyCode.R) && UnlockBtn.activeInHierarchy){
+                UnlockDoor();
+            }
             if(!whetherOpen){//角色靠近門旁邊，關門時
                 if(isWolf){//是狼人，且能破門的話
                     WolfBehaviors _w = GameObject.Find("Wolf").GetComponent<WolfBehaviors>();
@@ -133,11 +141,12 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
             }
         }
     }
-    public void SwitchDoor(){//目前這個寫法應該只有自己這邊會播放
+    public void SwitchDoor(){
         if(!whetherOpen){
             if(!whetherLock)
                 _gm.CallRpcDoorSwitchStatus(doorKey, true, false);
             else{
+                //門鎖住的音效
                 print("已經上鎖");
             }
         }

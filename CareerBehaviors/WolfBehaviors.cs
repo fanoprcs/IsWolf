@@ -44,8 +44,10 @@ public class WolfBehaviors : MonoBehaviourPunCallbacks
                 }
             }
         }
-        if (nearestObject != null && canKilled)
-        {
+        if (nearestObject != null && canKilled){
+            if(Input.GetKeyUp(KeyCode.Space)){
+                killPlayer();
+            }
             targetPlayerName = nearestObject.GetComponent<PhotonView>().Owner.NickName;
             killBtn.interactable = true;
         }
@@ -54,7 +56,7 @@ public class WolfBehaviors : MonoBehaviourPunCallbacks
         }
     }
     public void killPlayer(){
-        _gm.CallRpcIsDead(targetPlayerName);
+        _gm.CallRpcIsDead(targetPlayerName, 0);
     }
     
 }

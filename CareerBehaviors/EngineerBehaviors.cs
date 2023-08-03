@@ -33,6 +33,11 @@ public class EngineerBehaviors : MonoBehaviourPunCallbacks
         }
         print("EngineerBehaviors");
     }
+    void Update(){
+        if(Input.GetKeyUp(KeyCode.Space)){
+            ShowSendPanel();
+        }
+    }
     public void ShowSendPanel(){
         if(ConnectPanel.activeInHierarchy){
             ConnectPanel.SetActive(false);

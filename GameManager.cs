@@ -24,9 +24,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject []Computer;
     [SerializeField] GameObject []Door;
     [SerializeField] UnityEngine.Sprite[] SkinIcon;//可以根據playerMap來對應
-    
-    [SerializeField] AudioClip dayBackgroundMusic;
-    [SerializeField] AudioClip nightBackgroundMusic;
     static int TotalPlayer = 9;
     public Dictionary<Player, List<int>> playerMap = new Dictionary<Player, List<int>>();//first: alive, second: career, third: skin
     private int playerKey;
@@ -35,23 +32,30 @@ public class GameManager : MonoBehaviourPunCallbacks
     public bool IsDayTime;
     private int mode;//白天，晚上，投票
     private int dayNightCount;
-    private MusicPlayer musicManager;
+    
     private NightMask _nm;
     public bool gameStart;
     public bool playVoteAnimate;
     private int voteCount = 0;
     private int[] voteSituation = new int[TotalPlayer];//9個玩家
+    
     [SerializeField] GameObject InsideArea;//要設active，不然會名字還沒改動就偵測到，導致出錯
     [SerializeField] GameObject waitingUI;
     [SerializeField] GameObject progressBarBack;
     [SerializeField] GameObject progressBar;
     [SerializeField] GameObject dayTimeBarBack;
     [SerializeField] GameObject dayTimeBar;
+    //Vote
     [SerializeField] GameObject VotePanel;
     [SerializeField] GameObject VoteBtn;
+    [SerializeField] GameObject CloseVotePanelBtn;
+    [SerializeField] GameObject SkipPanel;
     [SerializeField] GameObject []alreadyVoteIcon;
+    //
     [SerializeField] UnityEngine.UI.Text Date;
     [SerializeField] UnityEngine.UI.Text chatRoom;
+    private MusicPlayer musicManager;
+    
     private IEnumerator WaitForAllPlayersLoadScene()
     {
         bool allPlayersLoadedScene = false;
@@ -328,14 +332,17 @@ public class GameManager : MonoBehaviourPunCallbacks
         Vote.SetActive(true);
         Vote.GetComponent<VoteBehaviors>().alreadyVote = false;
         VoteBtn.SetActive(true);
+        CloseVotePanelBtn.SetActive(true);
+        SkipPanel.SetActive(false);
     }
     private IEnumerator PlayVote(){
         //撥放投票動畫時強制顯示Panel
         
-        Vote.GetComponent<VoteBehaviors>().alreadyVote = true;
+        Vote.GetComponent<VoteBehaviors>().alreadyVote = true;//讓skip以及選擇玩家等功能失效
         VoteBtn.SetActive(false);
+        CloseVotePanelBtn.SetActive(false);
         VotePanel.SetActive(true);
-        
+        SkipPanel.SetActive(true);
         int []voteIconIndex = new int [TotalPlayer];
         int skipIconIndex = 0;
         List<GameObject> storeShowIconList = new List<GameObject>();//為了將Icon重置
@@ -362,7 +369,6 @@ public class GameManager : MonoBehaviourPunCallbacks
                 else{//表示沒投票或著是skip
                     skipIconIndex++;
                     GameObject showIcon = VotePanel.transform.Find("SkipPanel").
-                                                        transform.Find("Skip_IMG").
                                                         transform.Find("Icon").
                                                         transform.Find("Icon_" + skipIconIndex).gameObject;
                     storeShowIconList.Add(showIcon);//將有變化的icon物件儲存以便重置
@@ -379,6 +385,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             //撥放投票音效
             
         }
+        yield return new WaitForSeconds(5f);
         VotePanel.SetActive(false);
         Vote.SetActive(false);//投票完接晚上
         //結算
@@ -423,7 +430,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         //所有人要顯示sender已打勾，以及投票聲音等
         print("vote");
         alreadyVoteIcon[senderKey-1].SetActive(true);
-        Vote.GetComponent<AudioSource>().clip = Vote.GetComponent<VoteBehaviors>().voteSound;
+        Vote.GetComponent<AudioSource>().clip = musicManager.audio_checkVote;
         Vote.GetComponent<AudioSource>().Play();
         if(voteCount == alivePeopleCount()){//投票人數跟存活的人一樣的時候
             playVoteAnimate = true;
@@ -477,15 +484,26 @@ public class GameManager : MonoBehaviourPunCallbacks
     public override void OnLeftRoom(){
         UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
     }
-    public void CallRpcIsDead(string name){
-        GetComponent<PhotonView>().RPC("RpcIsDead", RpcTarget.All, name);
+    public void CallRpcIsDead(string name, int causeOfDeath){
+        GetComponent<PhotonView>().RPC("RpcIsDead", RpcTarget.All, name, causeOfDeath);
     }
 
     [PunRPC]
-    void RpcIsDead(string name){
+    void RpcIsDead(string name, int causeOfDeath){
         GameObject playerObject = GameObject.Find(name + "(player)");
         playerMap[playerObject.GetComponent<PhotonView>().Owner][0] = 0;
         playerObject.GetComponent<Animator>().SetBool("dying", true);
+        if(causeOfDeath == 0){//被狼殺死
+            playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
+            playerObject.GetComponent<AudioSource>().Play();
+        }
+        else if(causeOfDeath == 1){//被獵人殺死
+            playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
+            playerObject.GetComponent<AudioSource>().Play();
+        }
+        else if(causeOfDeath == 2){//被投票殺死
+
+        }
         if(playerObject.GetComponent<PhotonView>().IsMine){
             SwitchBehaviors();
             SwitchToDeadMode();
@@ -499,7 +517,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         //do something
     }
     bool CheckGameOver(){
-        return alivePeopleCount() <= 1;
+        // 判斷遊戲是否結束
+        return false;
     }
     int alivePeopleCount(){
         int aliveCount = 0;
@@ -553,19 +572,19 @@ public class GameManager : MonoBehaviourPunCallbacks
         GetComponent<PhotonView>().RPC("RpcDoorSwitchStatus", RpcTarget.All, doorKey, whetherOpen, isWolfBreak);
     }
     [PunRPC]public void RpcDoorSwitchStatus(int doorKey, bool whetherOpen, bool isWolfBreak){
-        DoorBehaviors _db = Door[doorKey].GetComponent<DoorBehaviors>();
+        DoorBehaviors db = Door[doorKey].GetComponent<DoorBehaviors>();
         if(isWolfBreak){
-            _db.whetherOpen = whetherOpen;
+            db.whetherOpen = whetherOpen;
             Door[doorKey].GetComponent<Animator>().SetBool("open", whetherOpen);
             if(whetherOpen == true){//如果開門的話，則不能夠查看了
-                _db.canCheck = false; 
+                db.canCheck = false; 
             }
         }
-        else if(!_db.whetherLock){
-            _db.whetherOpen = whetherOpen;
+        else if(!db.whetherLock){
+            db.whetherOpen = whetherOpen;
             Door[doorKey].GetComponent<Animator>().SetBool("open", whetherOpen);
             if(whetherOpen == true){//如果開門的話，則不能夠查看了
-                _db.canCheck = false;
+                db.canCheck = false;
             }
         }
     }
@@ -583,7 +602,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RpcRingTheBell(int doorKey, int playerKey){
         DoorBehaviors db = Door[doorKey].GetComponent<DoorBehaviors>();
-        Door[doorKey].GetComponent<AudioSource>().clip = db.doorBell;
+        Door[doorKey].GetComponent<AudioSource>().clip = musicManager.audio_doorBell;
         Door[doorKey].GetComponent<AudioSource>().Play();
         db.canCheck = true;
         db.CheckPlayerId = playerKey;
@@ -665,7 +684,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         waitingUI.SetActive(false);
         SwitchBehaviors();
         musicManager = FindObjectOfType<MusicPlayer>();
-        musicManager.GetComponent<AudioSource>().clip = dayBackgroundMusic;
+        musicManager.GetComponent<AudioSource>().clip = musicManager.dayBackgroundMusic;
         musicManager.GetComponent<AudioSource>().Play();
         InsideArea.SetActive(true);
         gameStart = true;

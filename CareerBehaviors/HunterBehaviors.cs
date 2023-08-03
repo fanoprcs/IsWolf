@@ -27,6 +27,11 @@ public class HunterBehaviors : MonoBehaviourPunCallbacks/*, UnityEngine.EventSys
         }
         print("HunterBehaviors");
     }
+    void Update(){
+        if(Input.GetKeyUp(KeyCode.Space)){
+            ShowShootPanel();
+        }
+    }
     public void ShowShootPanel(){
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){
             if(_gm.playerMap[kvp.Value][0] == 0){ //已經死了，則顯示圖案
@@ -48,7 +53,7 @@ public class HunterBehaviors : MonoBehaviourPunCallbacks/*, UnityEngine.EventSys
         print("Clicked on " + player.NickName);
         ShootPanel.SetActive(false);
         //animator play
-        _gm.CallRpcIsDead(player.NickName);
+        _gm.CallRpcIsDead(player.NickName, 1);
     }
 
 }

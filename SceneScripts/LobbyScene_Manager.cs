@@ -91,7 +91,7 @@ public class LobbyScene_Manager : MonoBehaviourPunCallbacks//目前設定只能�
         return true;
     }
     private string IsValidName(string str){
-        if(str.Length >= 6)
+        if(str.Length > 6)
             return "字數過長，請輸入 1 到 6 個字元";
         else if(str.Length == 0)
             return "字數過短，請輸入 1 到 6 個字元";

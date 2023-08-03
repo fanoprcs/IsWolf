@@ -40,8 +40,10 @@ public class DoctorBehaviors : MonoBehaviourPunCallbacks
                 }
             }
         }
-        if (nearestObject != null)
-        {
+        if (nearestObject != null){   
+            if(Input.GetKeyUp(KeyCode.Space)){
+                CheckPlayer();
+            }
             targetPlayerName = nearestObject.GetComponent<PhotonView>().Owner.NickName;
             checkBtn.interactable = true;
         }

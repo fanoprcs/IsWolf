@@ -16,7 +16,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
         if(PhotonNetwork.CurrentRoom == null)
             UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
         else{
-            textRoomName.text = addSpaceInWords(PhotonNetwork.CurrentRoom.Name, 30);
+            textRoomName.text = addSpaceInWords(PhotonNetwork.CurrentRoom.Name, 10);
             chatSb = "";
             startGame.interactable = PhotonNetwork.IsMasterClient;//設定是否可以互動(這樣表示出發按鈕只有master有權)
             UpdatePlayerList();
@@ -33,7 +33,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
     public void UpdatePlayerList(){
         System.Text.StringBuilder sb = new System.Text.StringBuilder();
         foreach(var playerName in PhotonNetwork.CurrentRoom.Players){
-            sb.AppendLine("-> " + addSpaceInWords(playerName.Value.NickName, 30));
+            sb.AppendLine("-> " + addSpaceInWords(playerName.Value.NickName, 10));
         }
         playerRoom.text = sb.ToString();
     }
