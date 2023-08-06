@@ -53,7 +53,9 @@ public class HunterBehaviors : MonoBehaviourPunCallbacks/*, UnityEngine.EventSys
         print("Clicked on " + player.NickName);
         ShootPanel.SetActive(false);
         //animator play
-        _gm.CallRpcIsDead(player.NickName, 1);
+        _gm.CallRpcPlayAudioOnPlayer(PhotonNetwork.LocalPlayer.NickName, 0);//audioCode = 0
+        _gm.CallRpcIsDead(player.NickName, 1);//被獵人殺死表示1
     }
-
+    
+    
 }

@@ -55,7 +55,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] UnityEngine.UI.Text Date;
     [SerializeField] UnityEngine.UI.Text chatRoom;
     private MusicPlayer musicManager;
-    
     private IEnumerator WaitForAllPlayersLoadScene()
     {
         bool allPlayersLoadedScene = false;
@@ -74,7 +73,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         StartGame();
     }
-    private IEnumerator WaitForAllPlayersInstantiate()
+    private IEnumerator WaitForAllPlayersInstantiate()//確認是否所有玩家都已經出現了
     {
         bool allPlayersInstantiate = false;
 
@@ -129,7 +128,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         allocateCareer = allocateCareer.OrderBy(x => random.Next()).ToArray();
         allocateSkin = allocateSkin.OrderBy(x => random.Next()).ToArray();
         //test
-        int[] allocateCareerTest = {(int)Careers.wolf, (int)Careers.hunter, (int)Careers.doctor, (int)Careers.hunter, (int)Careers.human
+        int[] allocateCareerTest = {(int)Careers.hunter, (int)Careers.wolf, (int)Careers.doctor, (int)Careers.hunter, (int)Careers.human
                                 , (int)Careers.human, (int)Careers.wolf, (int)Careers.engineer, (int)Careers.wolf};
         GetComponent<PhotonView>().RPC("RpcInitCharacters", RpcTarget.All, allocateCareerTest, allocateSkin);
     }
@@ -339,15 +338,15 @@ public class GameManager : MonoBehaviourPunCallbacks
         //撥放投票動畫時強制顯示Panel
         
         Vote.GetComponent<VoteBehaviors>().alreadyVote = true;//讓skip以及選擇玩家等功能失效
-        VoteBtn.SetActive(false);
+        if(!VotePanel.activeInHierarchy){
+            Vote.GetComponent<VoteBehaviors>().showVotePanel();
+        }
         CloseVotePanelBtn.SetActive(false);
-        VotePanel.SetActive(true);
         SkipPanel.SetActive(true);
         int []voteIconIndex = new int [TotalPlayer];
         int skipIconIndex = 0;
         List<GameObject> storeShowIconList = new List<GameObject>();//為了將Icon重置
-        yield return new WaitForSeconds(0.8f);
-        
+        yield return new WaitForSeconds(0.5f);
         for(int i = 0; i < TotalPlayer; i++){
             Player tmpPlayer = FindPlayerByKey(i+1);
             if(tmpPlayer != null){
@@ -364,6 +363,8 @@ public class GameManager : MonoBehaviourPunCallbacks
                     Color color = showImg.color;
                     color.a = 1f;
                     showImg.color = color;
+                    Vote.GetComponent<AudioSource>().clip = musicManager.audio_settle;
+                    Vote.GetComponent<AudioSource>().Play();
                     yield return new WaitForSeconds(0.8f);
                 }
                 else{//表示沒投票或著是skip
@@ -373,14 +374,17 @@ public class GameManager : MonoBehaviourPunCallbacks
                                                         transform.Find("Icon_" + skipIconIndex).gameObject;
                     storeShowIconList.Add(showIcon);//將有變化的icon物件儲存以便重置
                     UnityEngine.UI.Image showImg = showIcon.GetComponent<UnityEngine.UI.Image>();
-                    if(playerMap[tmpPlayer][0] == 1){
+                    if(playerMap[tmpPlayer][0] == 1){//還活著的話才有投票權，要顯示在skip裡面
                         showImg.sprite = SkinIcon[playerMap[tmpPlayer][2]-1];
                         Color color = showImg.color;
                         color.a = 1f;
                         showImg.color = color;
+                        Vote.GetComponent<AudioSource>().clip = musicManager.audio_settle;
+                        Vote.GetComponent<AudioSource>().Play();
                         yield return new WaitForSeconds(0.8f);
                     }
                 }
+                
             }
             //撥放投票音效
             
@@ -405,6 +409,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             print("no player leave");
         }
         else{
+            CallRpcIsDead(FindPlayerByKey(maxIndices[0]+1).NickName, 2);
+            
             //do somethings
         }
         //把人踢走的畫面
@@ -487,7 +493,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     public void CallRpcIsDead(string name, int causeOfDeath){
         GetComponent<PhotonView>().RPC("RpcIsDead", RpcTarget.All, name, causeOfDeath);
     }
-
+    public void ccDead(int deadMode){
+        RpcIsDead(FindPlayerByKey(PhotonNetwork.LocalPlayer.ActorNumber).NickName, deadMode);
+    }
     [PunRPC]
     void RpcIsDead(string name, int causeOfDeath){
         GameObject playerObject = GameObject.Find(name + "(player)");
@@ -498,8 +506,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             playerObject.GetComponent<AudioSource>().Play();
         }
         else if(causeOfDeath == 1){//被獵人殺死
-            playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
-            playerObject.GetComponent<AudioSource>().Play();
+            //playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
+            //playerObject.GetComponent<AudioSource>().Play();
         }
         else if(causeOfDeath == 2){//被投票殺死
 
@@ -686,17 +694,28 @@ public class GameManager : MonoBehaviourPunCallbacks
         musicManager = FindObjectOfType<MusicPlayer>();
         musicManager.GetComponent<AudioSource>().clip = musicManager.dayBackgroundMusic;
         musicManager.GetComponent<AudioSource>().Play();
-        InsideArea.SetActive(true);
+        InsideArea.SetActive(true);//開始需要辨別玩家位置
         gameStart = true;
     }
+    public void CallRpcPlayAudioOnPlayer(string playerName, int audioCode){
+         GetComponent<PhotonView>().RPC("RpcPlayAudioOnPlayer", RpcTarget.All, playerName, audioCode);
+    }
+    [PunRPC]
+    private void RpcPlayAudioOnPlayer(string playerName, int audioCode)
+    {
+        print("play");
+        AudioSource ap = GameObject.Find(playerName + "(player)").GetComponent<AudioSource>();
+        ap.clip = musicManager.getAudioSound(audioCode);
+        ap.Play();
+    }
     
-    public Photon.Realtime.Player FindPlayerByNickname(string nickname)
+    public Player FindPlayerByNickname(string nickname)
     {
         return PhotonNetwork.PlayerList.FirstOrDefault(player => player.NickName == nickname);
     }
-    public Photon.Realtime.Player FindPlayerByKey(int key)
+    public Photon.Realtime.Player FindPlayerByKey(int key)//1~9
     {
-        Photon.Realtime.Player player = null;
+        Player player = null;
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){
             if(kvp.Value.ActorNumber == key){
                 player = kvp.Value;
@@ -705,7 +724,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         return player;
     }
-    public int FindKeyByPlayer(Photon.Realtime.Player player)
+    public int FindKeyByPlayer(Player player)
     {
         int key = 0;
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){

@@ -6,6 +6,9 @@ using Photon.Pun;
 public class setting : MonoBehaviourPunCallbacks
 {
     [SerializeField] GameObject Option;
+    [SerializeField] GameObject KeyboardOptionPanel;
+    [SerializeField] GameObject QuitLobbyPanel;
+    [SerializeField] GameObject QuitGamePanel;
     private MusicPlayer musicManager;
     [SerializeField] AudioClip lobbyBackgroundMusic;
     // Update is called once per frame
@@ -20,6 +23,20 @@ public class setting : MonoBehaviourPunCallbacks
     }
     public void BackToGame(){
         Option.SetActive(false);
+    }
+    public void ShowKeyboardOptionPanel(){
+        KeyboardOptionPanel.SetActive(true);
+    }
+    public void ShowQuitLobbyPanel(){
+        QuitLobbyPanel.SetActive(true);
+    }
+    public void ShowQuitGamePanel(){
+        QuitGamePanel.SetActive(true);
+    }
+    public void BackToOption(){
+        KeyboardOptionPanel.SetActive(false);
+        QuitLobbyPanel.SetActive(false);
+        QuitGamePanel.SetActive(false);
     }
     public void BackToLooby(){
         musicManager = FindObjectOfType<MusicPlayer>();
