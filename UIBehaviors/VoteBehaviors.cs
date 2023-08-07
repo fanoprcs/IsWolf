@@ -16,13 +16,13 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
     GameManager _gm;
     [SerializeField] GameObject VoteBtn;
     [SerializeField] AudioClip audio_checkSelected;//選擇投票對象時的音效(只有本地會播放)
-    int votePlayerkey;//1~9
-    public bool alreadyVote;
+    int votePlayerKey;//1~9
+    public bool alreadySelect;
     void Start()
     {
         _gm = GameObject.Find("GameManager").GetComponent<GameManager>();
-        alreadyVote = false;
-        votePlayerkey = -1;
+        alreadySelect = false;
+        votePlayerKey = -1;
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){
             PlayerName[kvp.Value.ActorNumber-1].text = kvp.Value.NickName;
             PlayerImg[kvp.Value.ActorNumber-1].GetComponent<UnityEngine.UI.Image>().sprite = GameObject.Find(kvp.Value.NickName + "(player)").GetComponent<SpriteRenderer>().sprite;
@@ -35,9 +35,10 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
         print("VoteBehaviors");
     }
 
-    public void showVotePanel(){
+    public void ShowVotePanel(){
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){
-            if(_gm.playerMap[kvp.Value][0] == 0){//死掉了
+            if(_gm.playerMap[kvp.Value][0] == 0){//已經死了，則顯示X，並且更新為倒下來的照片
+                PlayerImg[kvp.Value.ActorNumber-1].GetComponent<UnityEngine.UI.Image>().sprite = GameObject.Find(kvp.Value.NickName + "(player)").GetComponent<SpriteRenderer>().sprite;
                 dead[kvp.Value.ActorNumber-1].SetActive(true);
             }
         }
@@ -46,10 +47,17 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
         ResetSelectedBtn.SetActive(false);
         VoteBtn.SetActive(false);
         VotePanel.SetActive(true);
-        votePlayerkey = -1;
     }
-    public void closeVotePanel(){
-        alreadyVote = false;//重設是否投票
+    public void CloseVotePanel(){
+        if(votePlayerKey!=-1){
+            UnityEngine.UI.Image playerImg = VotePanel.transform.Find("Player" + votePlayerKey).gameObject
+                                            .GetComponent<UnityEngine.UI.Image>();
+            Color color = playerImg.color;
+            color.a = 0f;
+            playerImg.color = color;
+        }
+        votePlayerKey = -1;
+        alreadySelect = false;//重設是否選擇
         VoteBtn.SetActive(true);
         VotePanel.SetActive(false);
     }
@@ -57,27 +65,27 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
         CheckVoteBtn.SetActive(false);
         ResetSelectedBtn.SetActive(false);
         SkipBtn.SetActive(false);
-        alreadyVote = true;
-        if(votePlayerkey!=-1){//vote
-            UnityEngine.UI.Image playerImg =  VotePanel.transform.Find("Player" + votePlayerkey).gameObject.GetComponent<UnityEngine.UI.Image>();
+        alreadySelect = true;
+        if(votePlayerKey!=-1){//vote
+            UnityEngine.UI.Image playerImg =  VotePanel.transform.Find("Player" + votePlayerKey).gameObject.GetComponent<UnityEngine.UI.Image>();
             Color color = playerImg.color;
             color.a = 0f;
             playerImg.color = color;
-            print(PhotonNetwork.LocalPlayer.NickName + " vote " + _gm.FindPlayerByKey(votePlayerkey).NickName + ".");
+            print(PhotonNetwork.LocalPlayer.NickName + " vote " + PlayerName[votePlayerKey-1].text + ".");
         }
         else{//skip
             print(PhotonNetwork.LocalPlayer.NickName + " skip the vote.");
         }
-        _gm.CallRpcAlreadyVote(votePlayerkey, PhotonNetwork.LocalPlayer.ActorNumber);//投票的對象、做出投票動作的人
+        _gm.CallRpcAlreadyVote(votePlayerKey, PhotonNetwork.LocalPlayer.ActorNumber);//投票的對象、做出投票動作的人
     }
     public void SelectedPlayer(int key){//1~9
         if(_gm.FindPlayerByKey(key) != null){//只是因為測試的時候沒有其他玩家會有bug暫時設置的
             if(_gm.playerMap[_gm.FindPlayerByKey(key)][0] == 1){//選擇的對象還活著
-                if(!alreadyVote && _gm.playerMap[PhotonNetwork.LocalPlayer][0] == 1){//自己本人還沒投票且還活著
-                    // play sound
-                    alreadyVote = true;
-                    votePlayerkey = key;
-                    UnityEngine.UI.Image playerImg =  VotePanel.transform.Find("Player" + votePlayerkey).gameObject.GetComponent<UnityEngine.UI.Image>();
+                if(!alreadySelect && _gm.playerMap[PhotonNetwork.LocalPlayer][0] == 1){//自己本人還沒選擇且還活著
+                    //should play sound?
+                    alreadySelect = true;
+                    votePlayerKey = key;
+                    UnityEngine.UI.Image playerImg =  VotePanel.transform.Find("Player" + votePlayerKey).gameObject.GetComponent<UnityEngine.UI.Image>();
                     Color color = playerImg.color;
                     color.a = 0.4f;
                     playerImg.color = color;
@@ -89,10 +97,10 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
         }
     }
     public void SkipVote(){
-        if(!alreadyVote && _gm.playerMap[PhotonNetwork.LocalPlayer][0] == 1){
+        if(!alreadySelect && _gm.playerMap[PhotonNetwork.LocalPlayer][0] == 1){
             // play sound
-            alreadyVote = true;
-            votePlayerkey = -1;
+            alreadySelect = true;
+            votePlayerKey = -1;
             CheckVoteBtn.SetActive(true);
             ResetSelectedBtn.SetActive(true);
         }
@@ -100,15 +108,14 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
     public void ResetSelected(){
         CheckVoteBtn.SetActive(false);
         ResetSelectedBtn.SetActive(false);
-        alreadyVote = false;
-        GameObject selectedPlayer;
-        if(votePlayerkey!=-1){
-            selectedPlayer = VotePanel.transform.Find("Player" + votePlayerkey).gameObject;
+        alreadySelect = false;
+        if(votePlayerKey!=-1){
+            GameObject selectedPlayer = VotePanel.transform.Find("Player" + votePlayerKey).gameObject;
             UnityEngine.UI.Image playerImg = selectedPlayer.GetComponent<UnityEngine.UI.Image>();
             Color color = playerImg.color;
             color.a = 0f;
             playerImg.color = color;
-        }       
-        votePlayerkey = -1;
+        }
+        votePlayerKey = -1;
     }
 }

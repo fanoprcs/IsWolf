@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject Engineer;
     [SerializeField] GameObject Hunter;
     [SerializeField] GameObject Vote;
+    [SerializeField] GameObject VoteUI;
     [SerializeField] GameObject []Computer;
     [SerializeField] GameObject []Door;
     [SerializeField] UnityEngine.Sprite[] SkinIcon;//可以根據playerMap來對應
@@ -43,7 +44,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject waitingUI;
     [SerializeField] GameObject progressBarBack;
     [SerializeField] GameObject progressBar;
-    [SerializeField] GameObject dayTimeBarBack;
     [SerializeField] GameObject dayTimeBar;
     //Vote
     [SerializeField] GameObject VotePanel;
@@ -53,7 +53,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject []alreadyVoteIcon;
     //
     [SerializeField] UnityEngine.UI.Text Date;
-    [SerializeField] UnityEngine.UI.Text chatRoom;
     private MusicPlayer musicManager;
     private IEnumerator WaitForAllPlayersLoadScene()
     {
@@ -328,8 +327,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             alreadyVoteIcon[i].SetActive(false);
         }
         
-        Vote.SetActive(true);
-        Vote.GetComponent<VoteBehaviors>().alreadyVote = false;
+        VoteUI.SetActive(true);
+        Vote.GetComponent<VoteBehaviors>().alreadySelect = false;
         VoteBtn.SetActive(true);
         CloseVotePanelBtn.SetActive(true);
         SkipPanel.SetActive(false);
@@ -337,9 +336,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     private IEnumerator PlayVote(){
         //撥放投票動畫時強制顯示Panel
         
-        Vote.GetComponent<VoteBehaviors>().alreadyVote = true;//讓skip以及選擇玩家等功能失效
+        Vote.GetComponent<VoteBehaviors>().alreadySelect = true;//讓skip以及選擇玩家等功能失效
         if(!VotePanel.activeInHierarchy){
-            Vote.GetComponent<VoteBehaviors>().showVotePanel();
+            Vote.GetComponent<VoteBehaviors>().ShowVotePanel();
         }
         CloseVotePanelBtn.SetActive(false);
         SkipPanel.SetActive(true);
@@ -390,8 +389,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             
         }
         yield return new WaitForSeconds(5f);
-        VotePanel.SetActive(false);
-        Vote.SetActive(false);//投票完接晚上
+        Vote.GetComponent<VoteBehaviors>().CloseVotePanel();
+        VoteUI.SetActive(false);//投票完接晚上
         //結算
         int maxVotes = 0;
         List<int> maxIndices = new List<int>();
@@ -499,26 +498,28 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void RpcIsDead(string name, int causeOfDeath){
         GameObject playerObject = GameObject.Find(name + "(player)");
-        playerMap[playerObject.GetComponent<PhotonView>().Owner][0] = 0;
-        playerObject.GetComponent<Animator>().SetBool("dying", true);
-        if(causeOfDeath == 0){//被狼殺死
-            playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
-            playerObject.GetComponent<AudioSource>().Play();
-        }
-        else if(causeOfDeath == 1){//被獵人殺死
-            //playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
-            //playerObject.GetComponent<AudioSource>().Play();
-        }
-        else if(causeOfDeath == 2){//被投票殺死
+        if(playerMap[playerObject.GetComponent<PhotonView>().Owner][0] == 1){
+            playerMap[playerObject.GetComponent<PhotonView>().Owner][0] = 0;
+            playerObject.GetComponent<Animator>().SetBool("dying", true);
+            if(causeOfDeath == 0){//被狼殺死
+                playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
+                playerObject.GetComponent<AudioSource>().Play();
+            }
+            else if(causeOfDeath == 1){//被獵人殺死
+                //playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
+                //playerObject.GetComponent<AudioSource>().Play();
+            }
+            else if(causeOfDeath == 2){//被投票殺死
 
-        }
-        if(playerObject.GetComponent<PhotonView>().IsMine){
-            SwitchBehaviors();
-            SwitchToDeadMode();
-            //PhotonNetwork.Destroy(playerObject);
-        }
-        if(PhotonNetwork.IsMasterClient && CheckGameOver()){//遊戲結束
-            //CallRpcReloadGame();
+            }
+            if(playerObject.GetComponent<PhotonView>().IsMine){
+                SwitchBehaviors();
+                SwitchToDeadMode();
+                //PhotonNetwork.Destroy(playerObject);
+            }
+            if(PhotonNetwork.IsMasterClient && CheckGameOver()){//遊戲結束
+                //CallRpcReloadGame();
+            }
         }
     }
     void SwitchToDeadMode(){
@@ -694,6 +695,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         musicManager = FindObjectOfType<MusicPlayer>();
         musicManager.GetComponent<AudioSource>().clip = musicManager.dayBackgroundMusic;
         musicManager.GetComponent<AudioSource>().Play();
+        Vote.SetActive(true);//這邊就要設定true是要進入script觸發start，為了讓所有人在投票panel中都是以正面顯示
         InsideArea.SetActive(true);//開始需要辨別玩家位置
         gameStart = true;
     }
