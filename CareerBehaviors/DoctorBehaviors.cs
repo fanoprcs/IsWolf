@@ -53,7 +53,7 @@ public class DoctorBehaviors : MonoBehaviourPunCallbacks
     }
     public void CheckPlayer(){
         print( "check " + targetPlayerName);
-        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1f, 5f, false,() =>
+        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1f, 5f, false, -1,() =>
         {
             Debug.Log("進度條填滿");
             if(_gm.playerMap[_gm.FindPlayerByNickname(targetPlayerName)][1] == (int)Careers.wolf){

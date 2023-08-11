@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
-using TMPro;
+
 
 public class PlayerController : MonoBehaviourPunCallbacks
 {
     private Animator animator;
     public float moveSpeed = 3f;
-    public int hp = 3;
     public Careers playerCareer;
     GameManager _gm;
     PhotonView _pv;
@@ -19,9 +18,9 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public bool canRing;//此變數用來管理玩家是否可以按門鈴
     public bool canPeek;//此變數用來管理玩家是否可以偷看門外
     public bool canWatch;//此變數用來管理玩家是否可以查看門外
-    private UnityEngine.UI.InputField inputField;
-    private UnityEngine.UI.InputField enterMsg;
-    public TextMeshProUGUI nickName;
+    private UnityEngine.UI.InputField inputField;//要跟筆記本的狀態做連結，因為當筆記本再輸入字的時候玩家不能移動
+    private UnityEngine.UI.InputField enterMsg;//要跟筆記本的狀態做連結，因為當筆記本再輸入字的時候玩家不能移動
+    public UnityEngine.UI.Text nickName;
     void Start()
     {
         _pv = GetComponent<PhotonView>();
@@ -35,14 +34,14 @@ public class PlayerController : MonoBehaviourPunCallbacks
         playerCareer = (Careers)_gm.playerMap[gameObject.GetComponent<PhotonView>().Owner][1];
         if(!gameObject.GetComponent<PhotonView>().IsMine)
             Destroy(gameObject.GetComponent<Rigidbody2D>());
-        else{
+        else{//以玩家位置為聽眾
             this.gameObject.AddComponent<AudioListener>();
         }
         canLock = false;
         canRing = true;
         canPeek = false;
         canWatch = false;
-        nickName.GetComponent<TextMeshProUGUI>().SetText(_pv.Owner.NickName);
+        nickName.GetComponent<UnityEngine.UI.Text>().text = _pv.Owner.NickName;
         animator = GetComponent<Animator>();
     }
     void Update(){

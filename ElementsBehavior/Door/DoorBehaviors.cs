@@ -18,10 +18,11 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     private bool status = false;
     public bool whetherLock = false;
     public bool whetherOpen = false;
-    public int doorKey;
+    public int doorKey;// 0 ~ n
     public bool canCheck;//有人按門鈴時候，關門可以查看，一旦開門就不能查看，此變數表示該們可以被查看
     public int CheckPlayerId;
     private bool isWolf = false;
+    public bool successBreakDoor;
     // Start is called before the first frame update
     void Start()
     {
@@ -65,10 +66,14 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
             if(!whetherOpen){//角色靠近門旁邊，關門時
                 if(isWolf){//是狼人，且能破門的話
                     WolfBehaviors _w = GameObject.Find("Wolf").GetComponent<WolfBehaviors>();
-                    if(_w.alreadyBreakDoor == false && _w.canBreak){//是否已經使用破門和是否在可以破門的區域
+                    if(_w.canBreak && !_w.alreadyBreak){//是否已經使用破門和是否在可以破門的區域
+                        successBreakDoor = true;
                         BreakDoorBtn.SetActive(true);
                         BreakDoorBtn.GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
                         BreakDoorBtn.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(BreakDoor);
+                    }
+                    else{
+                        BreakDoorBtn.SetActive(false);
                     }
                 }
                 if(me.GetComponent<PlayerController>().canLock){//是否在可以破門的區域
@@ -144,20 +149,20 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     public void SwitchDoor(){
         if(!whetherOpen){
             if(!whetherLock)
-                _gm.CallRpcDoorSwitchStatus(doorKey, true, false);
+                _gm.CallRpcDoorSwitchStatus(doorKey, true);
             else{
                 //門鎖住的音效
                 print("已經上鎖");
             }
         }
         else{
-            _gm.CallRpcDoorSwitchStatus(doorKey, false, false);
+            _gm.CallRpcDoorSwitchStatus(doorKey, false);
         }
     }
     
     public void LockDoor(){
         GameObject player =  GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");
-        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.4f, 1f, false,() =>
+        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.4f, 1f, false, doorKey,() =>
         {
             Debug.Log("進度條填滿");
             if(!whetherOpen){
@@ -174,7 +179,7 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     }
     public void UnlockDoor(){
         GameObject player =  GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");
-        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.4f, 1f, false,() =>
+        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.4f, 1f, false, doorKey,() =>
         {
             Debug.Log("進度條填滿");
             if(!whetherOpen){
@@ -199,11 +204,13 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     }
     public void BreakDoor(){
         GameObject player =  GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");
-        GameObject.Find("Wolf").GetComponent<WolfBehaviors>().alreadyBreakDoor = true;
         bool isBreakDoor = true;
-        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.4f, 10f, isBreakDoor,() =>
+        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.4f, 10f, isBreakDoor, doorKey, () =>
         {
-            _gm.CallRpcDoorSwitchStatus(doorKey, true, true);
+            if(successBreakDoor){//成功破門的話才觸發
+                _gm.CallRpcDoorSwitchStatus(doorKey, true);
+                GameObject.Find("Wolf").GetComponent<WolfBehaviors>().alreadyBreak = true;//破完門後才確定成功破門
+            }
         }));
     }
 

@@ -33,7 +33,10 @@ public class GameManager : MonoBehaviourPunCallbacks
     public bool IsDayTime;
     private int mode;//白天，晚上，投票
     private int dayNightCount;
-    
+    public float DayTime = 5f;
+    public float NightTime = 20f;
+    public float VoteTime = 5f;
+
     private NightMask _nm;
     public bool gameStart;
     public bool playVoteAnimate;
@@ -127,8 +130,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         allocateCareer = allocateCareer.OrderBy(x => random.Next()).ToArray();
         allocateSkin = allocateSkin.OrderBy(x => random.Next()).ToArray();
         //test
-        int[] allocateCareerTest = {(int)Careers.hunter, (int)Careers.wolf, (int)Careers.doctor, (int)Careers.hunter, (int)Careers.human
-                                , (int)Careers.human, (int)Careers.wolf, (int)Careers.engineer, (int)Careers.wolf};
+        int[] allocateCareerTest = {(int)Careers.engineer, (int)Careers.wolf, (int)Careers.doctor, (int)Careers.hunter, (int)Careers.human
+                                , (int)Careers.human, (int)Careers.hunter, (int)Careers.wolf, (int)Careers.wolf};
         GetComponent<PhotonView>().RPC("RpcInitCharacters", RpcTarget.All, allocateCareerTest, allocateSkin);
     }
     [PunRPC]
@@ -215,7 +218,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     void RpcGameMode(int gameMode){
         mode = gameMode;
         if(mode == 0){//除了第一天白天接晚上之外，白天後面接討論環節
-            float DayTime = 1f;
             StartCoroutine(DayNightTimeBar((int)GamePhase.day , DayTime, () =>{
                 int nextMode;
                 if(dayNightCount == 1)
@@ -226,13 +228,11 @@ public class GameManager : MonoBehaviourPunCallbacks
             }));
         }
         else if(mode == 1){//晚上後面接白天
-            float NightTime = 1f;
             StartCoroutine(DayNightTimeBar((int)GamePhase.night , NightTime, () =>{  
                 SwitchToNextMode((int)GamePhase.day);
             }));
         }
         else if(mode == 2){//投票後面接續晚上
-            float VoteTime = 20f;
             StartCoroutine(DayNightTimeBar((int)GamePhase.vote , VoteTime, () =>{
                 //先撥放動畫等，再switch
                 if(!playVoteAnimate){//如果有玩家還沒有投票且時間到的話進入這裡
@@ -291,7 +291,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         else if(this.playerCareer == Careers.wolf){//狼人白天不能殺人
             Wolf.GetComponent<WolfBehaviors>().canKilled = false;
-            Wolf.GetComponent<WolfBehaviors>().alreadyBreakDoor = true;
+            Wolf.GetComponent<WolfBehaviors>().alreadyBreak = true;
         }
     }
     private void SetNightBehaviors(){//晚上
@@ -300,9 +300,9 @@ public class GameManager : MonoBehaviourPunCallbacks
         if(this.playerCareer == Careers.engineer){//工程師重製晚上才能連線
             Engineer.GetComponent<EngineerBehaviors>().alreadyUsed = false;
         }
-        else if(this.playerCareer == Careers.wolf){//狼人晚上才能殺人
-            Wolf.GetComponent<WolfBehaviors>().canKilled = true;
-            Wolf.GetComponent<WolfBehaviors>().alreadyBreakDoor = false;
+        else if(this.playerCareer == Careers.wolf){//晚上狼人
+            Wolf.GetComponent<WolfBehaviors>().canKilled = true;//晚上才能殺人
+            Wolf.GetComponent<WolfBehaviors>().alreadyBreak = false;//重置是否可以破門
         }
         /*播放晚上的配樂
         musicManager.GetComponent<AudioSource>().clip = nightBackgroundMusic;
@@ -577,25 +577,19 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]public void RpcPcSwitchStatus(int computerKey, int computerSkin){
         Computer[computerKey].GetComponent<ComputerBehavior>().skinMode = computerSkin;
     }
-    public void CallRpcDoorSwitchStatus(int doorKey, bool whetherOpen, bool isWolfBreak){
-        GetComponent<PhotonView>().RPC("RpcDoorSwitchStatus", RpcTarget.All, doorKey, whetherOpen, isWolfBreak);
+    public void CallRpcDoorSwitchStatus(int doorKey, bool whetherOpen){
+        GetComponent<PhotonView>().RPC("RpcDoorSwitchStatus", RpcTarget.All, doorKey, whetherOpen);
     }
-    [PunRPC]public void RpcDoorSwitchStatus(int doorKey, bool whetherOpen, bool isWolfBreak){
+    [PunRPC]public void RpcDoorSwitchStatus(int doorKey, bool whetherOpen){
         DoorBehaviors db = Door[doorKey].GetComponent<DoorBehaviors>();
-        if(isWolfBreak){
-            db.whetherOpen = whetherOpen;
-            Door[doorKey].GetComponent<Animator>().SetBool("open", whetherOpen);
-            if(whetherOpen == true){//如果開門的話，則不能夠查看了
-                db.canCheck = false; 
-            }
+        
+        db.whetherOpen = whetherOpen;
+        Door[doorKey].GetComponent<Animator>().SetBool("open", whetherOpen);
+        if(whetherOpen == true){//如果開門的話，則不能夠查看了
+            db.canCheck = false; 
         }
-        else if(!db.whetherLock){
-            db.whetherOpen = whetherOpen;
-            Door[doorKey].GetComponent<Animator>().SetBool("open", whetherOpen);
-            if(whetherOpen == true){//如果開門的話，則不能夠查看了
-                db.canCheck = false;
-            }
-        }
+        
+        
     }
     public void CallRpcDoorSwitchLock(int doorKey, bool whetherLock){
         GetComponent<PhotonView>().RPC("RpcDoorSwitchLock", RpcTarget.All, doorKey, whetherLock);
@@ -638,7 +632,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         GameObject.Find(playerName + "(player)").GetComponent<PlayerController>().canRing = status;
     }
     
-    public IEnumerator GenerateProgressBar(float x, float y, float loadTime, bool isBreakDoor,Action callback){
+    public IEnumerator GenerateProgressBar(float x, float y, float loadTime, bool isBreakDoor, int doorKey,Action callback){
         PlayerController pc = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>();
         pc.allowMovement = false;
         progressBarBack.transform.position = new Vector2(x-progressBarBack.GetComponent<RectTransform>().sizeDelta.x/2, y);
@@ -648,9 +642,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         //初始化為0
         progressBar.transform.localScale = new Vector3(0f, progressBar.transform.localScale.y, progressBar.transform.localScale.z);;
         // 模擬加載資源的過程，5秒鐘
-        if(isBreakDoor){
-            //do some things
-        }
+        
         float elapsedTime = 0f;
         while (elapsedTime < loadTime) {
             // 計算進度條的值，範圍從 0 到 1
@@ -661,7 +653,14 @@ public class GameManager : MonoBehaviourPunCallbacks
 
             // 等待一幀
             yield return null;
-
+            if(isBreakDoor){
+                //do some things
+                DoorBehaviors _db = Door[doorKey].GetComponent<DoorBehaviors>();
+                if(IsDayTime || _db.whetherOpen){//如果破門到一半變成白天或是門被打開
+                    _db.successBreakDoor = false;
+                    break;
+                }
+            }
             // 更新已經經過的時間
             elapsedTime += Time.deltaTime;
         }
