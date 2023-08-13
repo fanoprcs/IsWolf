@@ -8,6 +8,7 @@ public class DoctorBehaviors : MonoBehaviourPunCallbacks
     [SerializeField] UnityEngine.UI.Button checkBtn;
     [SerializeField] UnityEngine.UI.Text chatRoom;
     GameManager _gm;
+    PlayerController _pc;
     GameObject player;
     private float checkRadius;
     string targetPlayerName;
@@ -16,6 +17,7 @@ public class DoctorBehaviors : MonoBehaviourPunCallbacks
         checkRadius = 0.75f;
         player = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");
         _gm = GameObject.Find("GameManager").GetComponent<GameManager>();
+        _pc = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>();
         checkBtn.interactable = false;
         print("DoctorBehaviors");
     }
@@ -40,12 +42,12 @@ public class DoctorBehaviors : MonoBehaviourPunCallbacks
                 }
             }
         }
-        if (nearestObject != null){   
-            if(Input.GetKeyUp(KeyCode.Space)){
+        if (nearestObject != null){
+            checkBtn.interactable = true;
+            if(Input.GetKeyUp(KeyCode.Space) && _pc.allowMovement){
                 CheckPlayer();
             }
             targetPlayerName = nearestObject.GetComponent<PhotonView>().Owner.NickName;
-            checkBtn.interactable = true;
         }
         else{
             checkBtn.interactable = false;

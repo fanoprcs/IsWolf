@@ -158,41 +158,40 @@ public class GameManager : MonoBehaviourPunCallbacks
         float spawnX = this.playerKey;
         float spawnY = -3;/*UnityEngine.Random.Range(-3, 3);*/
         this.skin = 1;
-        GameObject player;
         if(this.skin == 1){
-            player = PhotonNetwork.Instantiate("Players/Player_1", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_1", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
             
         }
         else if(this.skin == 2){
-            player = PhotonNetwork.Instantiate("Players/Player_2", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_2", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
             
         }
         else if(this.skin == 3){
-            player = PhotonNetwork.Instantiate("Players/Player_3", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_3", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
             
         }
         else if(this.skin == 4){
-            player = PhotonNetwork.Instantiate("Players/Player_4", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_4", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
             
         }
         else if(this.skin == 5){
-            player = PhotonNetwork.Instantiate("Players/Player_5", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_5", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
 
         }
         else if(this.skin == 6){
-            player = PhotonNetwork.Instantiate("Players/Player_6", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_6", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
             
         }
         else if(this.skin == 7){
-            player = PhotonNetwork.Instantiate("Players/Player_7", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_7", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
             
         }
         else if(this.skin == 8){
-            player = PhotonNetwork.Instantiate("Players/Player_8", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_8", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
             
         }
         else{
-            player = PhotonNetwork.Instantiate("Players/Player_9", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Players/Player_9", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
         }
         int index = 0;
         foreach(GameObject pc in Computer){//每台電腦都要加到gamemanager的宣告中
@@ -286,7 +285,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             pc.GetComponent<ComputerBehavior>().skinMode = 1;
         }
         print(this.playerCareer);
-        if(this.playerCareer == Careers.engineer){//工程師白天能連線
+        if(this.playerCareer == Careers.engineer){//工程師白天不能連線
             Engineer.GetComponent<EngineerBehaviors>().alreadyUsed = true;
         }
         else if(this.playerCareer == Careers.wolf){//狼人白天不能殺人
@@ -297,7 +296,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     private void SetNightBehaviors(){//晚上
         IsDayTime = false;
         
-        if(this.playerCareer == Careers.engineer){//工程師重製晚上才能連線
+        if(this.playerCareer == Careers.engineer){//工程師晚上才能連線
             Engineer.GetComponent<EngineerBehaviors>().alreadyUsed = false;
         }
         else if(this.playerCareer == Careers.wolf){//晚上狼人
@@ -308,7 +307,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         musicManager.GetComponent<AudioSource>().clip = nightBackgroundMusic;
         musicManager.GetComponent<AudioSource>().Play();
         */
-        //為了晚上增添加一層幕，室外變黑，並且在房間外看不到室內s
+        //為了晚上增添加一層幕，室外變黑，並且在房間外看不到室內
         //如果角色在房間裡，則把所有不在室內的玩家動畫變成夜晚型態，如果角色離開房間，則把所有的玩家的動畫的bool night 調整回false
     }
     private void SetVoteBehaviors(){
@@ -437,7 +436,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         alreadyVoteIcon[senderKey-1].SetActive(true);
         Vote.GetComponent<AudioSource>().clip = musicManager.audio_checkVote;
         Vote.GetComponent<AudioSource>().Play();
-        if(voteCount == alivePeopleCount()){//投票人數跟存活的人一樣的時候
+        if(voteCount == AlivePeopleCount()){//投票人數跟存活的人一樣的時候
             playVoteAnimate = true;
             StartCoroutine(PlayVote());
         }
@@ -492,7 +491,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public void CallRpcIsDead(string name, int causeOfDeath){
         GetComponent<PhotonView>().RPC("RpcIsDead", RpcTarget.All, name, causeOfDeath);
     }
-    public void ccDead(int deadMode){
+    public void CcDead(int deadMode){
         RpcIsDead(FindPlayerByKey(PhotonNetwork.LocalPlayer.ActorNumber).NickName, deadMode);
     }
     [PunRPC]
@@ -500,7 +499,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         GameObject playerObject = GameObject.Find(name + "(player)");
         if(playerMap[playerObject.GetComponent<PhotonView>().Owner][0] == 1){
             playerMap[playerObject.GetComponent<PhotonView>().Owner][0] = 0;
-            playerObject.GetComponent<Animator>().SetBool("dying", true);
+            
             if(causeOfDeath == 0){//被狼殺死
                 playerObject.GetComponent<AudioSource>().clip = musicManager.audio_splatter;
                 playerObject.GetComponent<AudioSource>().Play();
@@ -512,6 +511,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             else if(causeOfDeath == 2){//被投票殺死
 
             }
+            playerObject.GetComponent<Animator>().SetBool("dying", true);
             if(playerObject.GetComponent<PhotonView>().IsMine){
                 SwitchBehaviors();
                 SwitchToDeadMode();
@@ -529,7 +529,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         // 判斷遊戲是否結束
         return false;
     }
-    int alivePeopleCount(){
+    int AlivePeopleCount(){
         int aliveCount = 0;
         foreach(var kvp in playerMap){
             if(kvp.Value[0] == 1) aliveCount++;

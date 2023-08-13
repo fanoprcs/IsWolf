@@ -34,7 +34,7 @@ public class EngineerBehaviors : MonoBehaviourPunCallbacks
         print("EngineerBehaviors");
     }
     void Update(){
-        if(Input.GetKeyUp(KeyCode.Space)){
+        if(Input.GetKeyUp(KeyCode.Space) && _pc.allowMovement && ConnectBtn.interactable){//玩家沒有在其他狀態中且可使用技能時
             ShowSendPanel();
         }
     }

@@ -8,6 +8,7 @@ public class WolfBehaviors : MonoBehaviourPunCallbacks
     private float killRadius;
     string targetPlayerName;
     GameManager _gm;
+    PlayerController _pc;
     GameObject player;
     public bool canKilled;//是否可以殺人
     public bool canBreak;//是否再可以破門的區域(門外、門內)
@@ -17,6 +18,7 @@ public class WolfBehaviors : MonoBehaviourPunCallbacks
         killRadius = 0.75f;
         player = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");
         _gm = GameObject.Find("GameManager").GetComponent<GameManager>();
+        _pc = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>();
         killBtn.interactable = false;
         canKilled = true;
         canBreak = true;
@@ -45,11 +47,11 @@ public class WolfBehaviors : MonoBehaviourPunCallbacks
             }
         }
         if (nearestObject != null && canKilled){
-            if(Input.GetKeyUp(KeyCode.Space)){
+            killBtn.interactable = true;
+            if(Input.GetKeyUp(KeyCode.Space) && _pc.allowMovement){
                 killPlayer();
             }
             targetPlayerName = nearestObject.GetComponent<PhotonView>().Owner.NickName;
-            killBtn.interactable = true;
         }
         else{
             killBtn.interactable = false;

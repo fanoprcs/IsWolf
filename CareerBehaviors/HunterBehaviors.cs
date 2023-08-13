@@ -13,6 +13,7 @@ public class HunterBehaviors : MonoBehaviourPunCallbacks/*, UnityEngine.EventSys
     [SerializeField]GameObject CheckShootBtn;
     [SerializeField]GameObject ResetSelectedBtn;
     GameManager _gm;
+    PlayerController _pc;
     public bool alreadyUsed = false;
     int shootPlayerKey;//1~9
     public bool alreadySelect;
@@ -20,6 +21,7 @@ public class HunterBehaviors : MonoBehaviourPunCallbacks/*, UnityEngine.EventSys
     {
         
         _gm = GameObject.Find("GameManager").GetComponent<GameManager>();
+        _pc = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>();
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){
             PlayerName[kvp.Value.ActorNumber-1].text = kvp.Value.NickName;
             PlayerImg[kvp.Value.ActorNumber-1].GetComponent<UnityEngine.UI.Image>().sprite = GameObject.Find(kvp.Value.NickName + "(player)").GetComponent<SpriteRenderer>().sprite;
@@ -33,7 +35,7 @@ public class HunterBehaviors : MonoBehaviourPunCallbacks/*, UnityEngine.EventSys
         print("HunterBehaviors");
     }
     void Update(){
-        if(Input.GetKeyUp(KeyCode.Space)){
+        if(Input.GetKeyUp(KeyCode.Space) && _pc.allowMovement && ShootBtn.interactable){//玩家沒有在其他狀態中且可使用技能時
             ShowShootPanel();
         }
     }

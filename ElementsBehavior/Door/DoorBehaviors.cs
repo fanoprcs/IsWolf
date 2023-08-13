@@ -5,7 +5,7 @@ using Photon.Pun;
 public class DoorBehaviors : MonoBehaviourPunCallbacks
 {
     
-    public float radius= 0.6f;
+    private float radius;
     [SerializeField]GameObject BreakDoorBtn;
     [SerializeField]GameObject DoorBtn;
     [SerializeField]GameObject LockBtn;
@@ -26,7 +26,7 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     // Start is called before the first frame update
     void Start()
     {
-        radius = 0.6f;
+        radius = 0.5f;
         whetherOpen = false;
         canCheck = false;
         //player = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");

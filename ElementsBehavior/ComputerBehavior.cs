@@ -39,7 +39,7 @@ public class ComputerBehavior : MonoBehaviourPunCallbacks
 
     // Update is called once per frame
     void Update()
-    {
+    {   
         if(skinMode == 1){
             GetComponent<SpriteRenderer>().sprite = computerOff;
             newMsgIcon.SetActive(false);
@@ -51,6 +51,10 @@ public class ComputerBehavior : MonoBehaviourPunCallbacks
         else if(skinMode == 3){
             GetComponent<SpriteRenderer>().sprite = computerMsg;
             newMsgIcon.SetActive(true);
+        }
+        if(MsgPanel.activeInHierarchy && _gm.IsDayTime){//白天是否要直接將正在聊天的視窗關閉
+            MsgPanel.SetActive(false);
+            newMsg.SetActive(false);
         }
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, radius);
         bool alter = false;
@@ -112,7 +116,7 @@ public class ComputerBehavior : MonoBehaviourPunCallbacks
             pointerClick.callback.AddListener((data) => ToLittleGame());
             game.GetComponent<UnityEngine.EventSystems.EventTrigger>().triggers.Add(pointerClick);
 
-            if(mode == 1){//當晚有被連上線
+            if(mode == 1 && !_gm.IsDayTime){//當晚有被連上線且是晚上
                 newMsg.SetActive(true);
                 newMsg.GetComponent<UnityEngine.EventSystems.EventTrigger>().triggers.Clear();
                 pointerClick = new UnityEngine.EventSystems.EventTrigger.Entry();
@@ -129,7 +133,7 @@ public class ComputerBehavior : MonoBehaviourPunCallbacks
         print("Game");
     }
     public void MsgRoom(){
-        print("Msg with Computer" + connectedKey);
+        print("Msg with Computer " + connectedKey);
         _gm.CallRpcPcSwitchStatus(computerKey, 2);
         //newMsgIcon.SetActive(false);
         closeBtn.GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
