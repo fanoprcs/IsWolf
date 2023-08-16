@@ -10,9 +10,10 @@ public class EngineerBehaviors : MonoBehaviourPunCallbacks
     [SerializeField]GameObject []PlayerImg;
     [SerializeField] GameObject ConnectPanel;
     [SerializeField] UnityEngine.UI.Text chatRoom;
+    [SerializeField]GameObject []DeadPlayerImg;
     PlayerController _pc;
     GameManager _gm;
-    private int localKey;
+
     public bool alreadyUsed;
     void Start()
     {
@@ -28,8 +29,7 @@ public class EngineerBehaviors : MonoBehaviourPunCallbacks
             color.a = 1f;
             PlayerImg[kvp.Value.ActorNumber-1].GetComponent<UnityEngine.UI.Image>().color = color;
             PlayerImg[kvp.Value.ActorNumber-1].GetComponent<UnityEngine.UI.Image>().SetNativeSize();
-            if(kvp.Value == PhotonNetwork.LocalPlayer)
-                localKey = kvp.Value.ActorNumber;
+
         }
         print("EngineerBehaviors");
     }
@@ -44,12 +44,18 @@ public class EngineerBehaviors : MonoBehaviourPunCallbacks
             _pc.allowMovement = true;
         }
         else{
-            
-            _pc.allowMovement = false;
+            _pc.allowMovement = false;//正在用電腦不能移動
+            foreach(var kvp in PhotonNetwork.CurrentRoom.Players){
+                if(_gm.playerMap[kvp.Value][0] == 0){ //已經死了，則顯示X，並且更新為倒下來的照片
+                    PlayerImg[kvp.Value.ActorNumber-1].GetComponent<UnityEngine.UI.Image>().sprite = GameObject.Find(kvp.Value.NickName + "(player)").GetComponent<SpriteRenderer>().sprite;
+                    DeadPlayerImg[kvp.Value.ActorNumber-1].SetActive(true);
+                }
+            } 
             ConnectPanel.SetActive(true);
+            
         }
     }
-    public void ConnectPC(int key){//晚上可以選擇某個人房間的電腦連線
+    public void ConnectPC(int key){//晚上可以選擇某個人房間的電腦連線，1~9
         alreadyUsed = true;
         ConnectBtn.interactable = false;
         Photon.Realtime.Player player;
@@ -57,7 +63,7 @@ public class EngineerBehaviors : MonoBehaviourPunCallbacks
         print("Clicked on " + player.NickName);
         ConnectPanel.SetActive(false);
         _pc.allowMovement = true;
-        _gm.CallRpcEngineerConnected(key, localKey);
+        _gm.CallRpcEngineerConnected(key, PhotonNetwork.LocalPlayer.ActorNumber);
         string richText = "<color=#00FFFF>";
         richText += "\n成功與" + key + "號房間的電腦連上線";
         richText += "</color>";

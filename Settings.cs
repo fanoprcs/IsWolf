@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
-public class setting : MonoBehaviourPunCallbacks
+public class Settings : MonoBehaviourPunCallbacks
 {
     [SerializeField] GameObject Option;
     [SerializeField] GameObject KeyboardOptionPanel;
+    [SerializeField] GameObject GameIntroPanel;
     [SerializeField] GameObject QuitLobbyPanel;
     [SerializeField] GameObject QuitGamePanel;
     private MusicPlayer musicManager;
@@ -15,8 +16,10 @@ public class setting : MonoBehaviourPunCallbacks
     void Update()
     {
        if (Input.GetKeyDown(KeyCode.Escape)) {
-            if(Option.activeInHierarchy)
+            if(Option.activeInHierarchy){
+                BackToOption();
                 Option.SetActive(false);
+            }
             else
                 Option.SetActive(true);
         } 
@@ -24,9 +27,13 @@ public class setting : MonoBehaviourPunCallbacks
     public void BackToGame(){
         Option.SetActive(false);
     }
+    public void ShowGameIntroPanel(){
+        GameIntroPanel.SetActive(true);
+    }
     public void ShowKeyboardOptionPanel(){
         KeyboardOptionPanel.SetActive(true);
     }
+    
     public void ShowQuitLobbyPanel(){
         QuitLobbyPanel.SetActive(true);
     }
@@ -35,6 +42,7 @@ public class setting : MonoBehaviourPunCallbacks
     }
     public void BackToOption(){
         KeyboardOptionPanel.SetActive(false);
+        GameIntroPanel.SetActive(false);
         QuitLobbyPanel.SetActive(false);
         QuitGamePanel.SetActive(false);
     }
