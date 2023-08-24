@@ -55,12 +55,13 @@ public class DoctorBehaviors : MonoBehaviourPunCallbacks
     }
     public void CheckPlayer(){
         print( "check " + targetPlayerName);
-        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1f, 5f, false, -1,() =>
+        targetPlayerName = PhotonNetwork.LocalPlayer.NickName;//測試功能用
+        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.5f, 5f, false, -1,() =>
         {
             Debug.Log("進度條填滿");
             if(_gm.playerMap[_gm.FindPlayerByNickname(targetPlayerName)][1] == (int)Careers.wolf){
-                string richText = "<color=#" + ColorUtility.ToHtmlStringRGB(Color.red) + ">";
-                richText += "\n該玩家為: 狼人";
+                string richText = "\n<color=#" + ColorUtility.ToHtmlStringRGB(Color.red) + ">";
+                richText += "該玩家為: 狼人";
                 richText += "</color>";
                 chatRoom.text += richText;
                 //播放狼的圖案(gameManager下的動畫)

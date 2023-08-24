@@ -7,6 +7,7 @@ public class Settings : MonoBehaviourPunCallbacks
 {
     [SerializeField] GameObject Option;
     [SerializeField] GameObject KeyboardOptionPanel;
+    [SerializeField] GameObject MusicControlPanel;
     [SerializeField] GameObject GameIntroPanel;
     [SerializeField] GameObject QuitLobbyPanel;
     [SerializeField] GameObject QuitGamePanel;
@@ -33,7 +34,9 @@ public class Settings : MonoBehaviourPunCallbacks
     public void ShowKeyboardOptionPanel(){
         KeyboardOptionPanel.SetActive(true);
     }
-    
+    public void ShowMusicControlPanel(){
+        MusicControlPanel.SetActive(true);
+    }
     public void ShowQuitLobbyPanel(){
         QuitLobbyPanel.SetActive(true);
     }

@@ -4,14 +4,14 @@ using UnityEngine;
 using Photon.Pun;
 public class DoorBehaviors : MonoBehaviourPunCallbacks
 {
-    
+    //public GameObject PeekBtn;偷看功能改成直接在房內就可以看到黑影
     private float radius;
     [SerializeField]GameObject BreakDoorBtn;
     [SerializeField]GameObject DoorBtn;
     [SerializeField]GameObject LockBtn;
     [SerializeField]GameObject UnlockBtn;
     public GameObject BellBtn;
-    //public GameObject PeekBtn;
+    [SerializeField] UnityEngine.UI.Text chatRoom;//用notebook來顯示偷看到的人是誰
     public GameObject CheckBtn;
     PlayerController _pc;
     GameManager _gm;
@@ -195,12 +195,16 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     }
     public void RingTheBell(){
         print("ring the bell");
-        _gm.CallRpcRingTheBell(doorKey, PhotonNetwork.LocalPlayer.ActorNumber);
+        _gm.CallRpcRingTheBell(doorKey, PhotonNetwork.LocalPlayer.ActorNumber);//這邊會傳送這扇門是由誰按下了門鈴，得到CheckPlayerId
         
     }
     public void CheckPlayer(){
         canCheck = false;
         print("Player " + CheckPlayerId + " ring the bell");
+        string richText = "\n<color=#" + ColorUtility.ToHtmlStringRGB(Color.blue) + ">";
+        richText += "Player " + CheckPlayerId + " ring the bell";
+        richText += "</color>";
+        chatRoom.text += richText;
     }
     public void BreakDoor(){
         GameObject player =  GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");

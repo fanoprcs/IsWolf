@@ -130,8 +130,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         allocateCareer = allocateCareer.OrderBy(x => random.Next()).ToArray();
         allocateSkin = allocateSkin.OrderBy(x => random.Next()).ToArray();
         //test
-        int[] allocateCareerTest = {(int)Careers.engineer, (int)Careers.wolf, (int)Careers.doctor, (int)Careers.hunter, (int)Careers.human
-                                , (int)Careers.human, (int)Careers.hunter, (int)Careers.wolf, (int)Careers.wolf};
+        int[] allocateCareerTest = {(int)Careers.doctor, (int)Careers.wolf, (int)Careers.wolf, (int)Careers.hunter, (int)Careers.human
+                                , (int)Careers.human, (int)Careers.hunter, (int)Careers.engineer, (int)Careers.wolf};
         GetComponent<PhotonView>().RPC("RpcInitCharacters", RpcTarget.All, allocateCareerTest, allocateSkin);
     }
     [PunRPC]
@@ -157,42 +157,38 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Generate(){
         float spawnX = this.playerKey;
         float spawnY = -3;/*UnityEngine.Random.Range(-3, 3);*/
-        this.skin = 1;
-        if(this.skin == 1){
-            PhotonNetwork.Instantiate("Players/Player_1", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-            
+        this.skin = 1;// 測試用，之後要刪除
+        switch (this.skin)
+        {
+            case 1:
+                PhotonNetwork.Instantiate("Players/Player_1", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
+            case 2:
+                PhotonNetwork.Instantiate("Players/Player_2", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
+            case 3:
+                PhotonNetwork.Instantiate("Players/Player_3", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
+            case 4:
+                PhotonNetwork.Instantiate("Players/Player_4", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
+            case 5:
+                PhotonNetwork.Instantiate("Players/Player_5", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
+            case 6:
+                PhotonNetwork.Instantiate("Players/Player_6", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
+            case 7:
+                PhotonNetwork.Instantiate("Players/Player_7", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
+            case 8:
+                PhotonNetwork.Instantiate("Players/Player_8", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
+            default:
+                PhotonNetwork.Instantiate("Players/Player_9", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
+                break;
         }
-        else if(this.skin == 2){
-            PhotonNetwork.Instantiate("Players/Player_2", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-            
-        }
-        else if(this.skin == 3){
-            PhotonNetwork.Instantiate("Players/Player_3", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-            
-        }
-        else if(this.skin == 4){
-            PhotonNetwork.Instantiate("Players/Player_4", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-            
-        }
-        else if(this.skin == 5){
-            PhotonNetwork.Instantiate("Players/Player_5", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-
-        }
-        else if(this.skin == 6){
-            PhotonNetwork.Instantiate("Players/Player_6", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-            
-        }
-        else if(this.skin == 7){
-            PhotonNetwork.Instantiate("Players/Player_7", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-            
-        }
-        else if(this.skin == 8){
-            PhotonNetwork.Instantiate("Players/Player_8", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-            
-        }
-        else{
-            PhotonNetwork.Instantiate("Players/Player_9", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-        }
+        
         int index = 0;
         foreach(GameObject pc in Computer){//每台電腦都要加到gamemanager的宣告中
             pc.GetComponent<ComputerBehavior>().enabled = true;
@@ -209,10 +205,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         }        
     }
     
-    void Update(){
-        
-        
-    }
     [PunRPC]
     void RpcGameMode(int gameMode){
         mode = gameMode;
