@@ -687,6 +687,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         musicManager.GetComponent<AudioSource>().Play();
         Vote.SetActive(true);//這邊就要設定true是要進入script觸發start，為了讓所有人在投票panel中都是以正面顯示
         _vb = Vote.GetComponent<VoteBehaviors>();
+        GameObject.Find("NotebookUI").GetComponent<NoteBook>().enabled = true;
         InsideArea.SetActive(true);//開始需要辨別玩家位置
         gameStart = true;
     }

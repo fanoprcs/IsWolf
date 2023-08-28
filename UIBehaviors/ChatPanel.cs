@@ -8,10 +8,13 @@ public class ChatPanel : MonoBehaviourPunCallbacks
     private string chatSb;
     [SerializeField] UnityEngine.UI.Text chatRoom;
     [SerializeField] UnityEngine.UI.InputField inputChatMessage; 
+    private PlayerController _pc;
     void Start()
     {
         chatSb = "";
-        
+        _pc = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>();
+        inputChatMessage.onValueChanged.AddListener(OnInputValueChanged);//當筆記本再輸入字的時候玩家不能移動
+        inputChatMessage.onEndEdit.AddListener(OnInputEndEdit);//當筆記本再輸入字的時候玩家不能移動
     }
 
     public void OnClickChat(){
@@ -43,5 +46,17 @@ public class ChatPanel : MonoBehaviourPunCallbacks
     }
     private bool IsValidMessage(string str){//言論審查
         return true;
+    }
+    private void OnInputValueChanged(string value)//用來限制當打字時角色不能移動
+    {
+        if(value!="")//因為當button發送時，value變成"" 
+            _pc.allowMovement = false;
+        else
+            _pc.allowMovement = true;
+    }
+
+    private void OnInputEndEdit(string value)
+    {
+        _pc.allowMovement = true;
     }
 }
