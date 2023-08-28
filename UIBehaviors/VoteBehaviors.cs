@@ -7,15 +7,17 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
     [SerializeField]UnityEngine.UI.Text []PlayerName;
     [SerializeField]GameObject []PlayerImg;//此欄位底下有放置icon的地方，要利用關聯位置來找到物件
     [SerializeField]UnityEngine.Sprite []PlayerIcon;
-    [SerializeField]GameObject VotePanel;
+    public GameObject VotePanel;
+    public GameObject ChatPanel;
+    public GameObject CloseVotePanelBtn;
+    public GameObject SkipPanel;
+    public GameObject VoteBtn;
     [SerializeField]GameObject SkipBtn;
     [SerializeField]GameObject CheckVoteBtn;
     [SerializeField]GameObject ResetSelectedBtn;
     [SerializeField]GameObject []already;
     [SerializeField]GameObject []dead;
     GameManager _gm;
-    [SerializeField] GameObject VoteBtn;
-    [SerializeField] AudioClip audio_checkSelected;//選擇投票對象時的音效(只有本地會播放)
     int votePlayerKey;//1~9
     public bool alreadySelect;
     void Start()
@@ -49,7 +51,7 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
         VotePanel.SetActive(true);
     }
     public void CloseVotePanel(){
-        if(votePlayerKey!=-1){
+        if(votePlayerKey!=-1){//已經選中，但是未確認投票時間就到了，則要把已經選中的效果恢復原狀
             UnityEngine.UI.Image playerImg = VotePanel.transform.Find("Player" + votePlayerKey).gameObject
                                             .GetComponent<UnityEngine.UI.Image>();
             Color color = playerImg.color;
@@ -58,6 +60,7 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
         }
         votePlayerKey = -1;
         alreadySelect = false;//重設是否選擇
+        ChatPanel.SetActive(false);
         VoteBtn.SetActive(true);
         VotePanel.SetActive(false);
     }
@@ -117,5 +120,11 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
             playerImg.color = color;
         }
         votePlayerKey = -1;
+    }
+    public void ShowChatPanel(){
+        if(ChatPanel.activeInHierarchy)
+            ChatPanel.SetActive(false);
+        else
+            ChatPanel.SetActive(true);
     }
 }

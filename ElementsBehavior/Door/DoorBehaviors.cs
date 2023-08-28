@@ -179,7 +179,7 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     }
     public void UnlockDoor(){
         GameObject player =  GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");
-        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.4f, 1f, false, doorKey,() =>
+        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.45f, 1f, false, doorKey,() =>
         {
             Debug.Log("進度條填滿");
             if(!whetherOpen){
@@ -209,7 +209,7 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     public void BreakDoor(){
         GameObject player =  GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)");
         bool isBreakDoor = true;
-        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.4f, 10f, isBreakDoor, doorKey, () =>
+        StartCoroutine(_gm.GenerateProgressBar(player.transform.position.x, player.transform.position.y + 1.45f, 10f, isBreakDoor, doorKey, () =>
         {
             if(successBreakDoor){//成功破門的話才觸發
                 _gm.CallRpcDoorSwitchStatus(doorKey, true);

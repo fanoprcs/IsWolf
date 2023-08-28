@@ -20,8 +20,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject Doctor;
     [SerializeField] GameObject Engineer;
     [SerializeField] GameObject Hunter;
-    [SerializeField] GameObject Vote;
-    [SerializeField] GameObject VoteUI;
+    
     [SerializeField] GameObject []Computer;
     [SerializeField] GameObject []Door;
     [SerializeField] UnityEngine.Sprite[] SkinIcon;//可以根據playerMap來對應
@@ -49,10 +48,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject progressBar;
     [SerializeField] GameObject dayTimeBar;
     //Vote
-    [SerializeField] GameObject VotePanel;
-    [SerializeField] GameObject VoteBtn;
-    [SerializeField] GameObject CloseVotePanelBtn;
-    [SerializeField] GameObject SkipPanel;
+    [SerializeField] GameObject Vote;
+    [SerializeField] GameObject VoteUI;
+    private VoteBehaviors _vb;
     [SerializeField] GameObject []alreadyVoteIcon;
     //
     [SerializeField] UnityEngine.UI.Text Date;
@@ -319,20 +317,21 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         
         VoteUI.SetActive(true);
-        Vote.GetComponent<VoteBehaviors>().alreadySelect = false;
-        VoteBtn.SetActive(true);
-        CloseVotePanelBtn.SetActive(true);
-        SkipPanel.SetActive(false);
+        _vb.alreadySelect = false;
+        _vb.VoteBtn.SetActive(true);
+        _vb.CloseVotePanelBtn.SetActive(true);
+        _vb.SkipPanel.SetActive(false);
     }
     private IEnumerator PlayVote(){
         //撥放投票動畫時強制顯示Panel
         
-        Vote.GetComponent<VoteBehaviors>().alreadySelect = true;//讓skip以及選擇玩家等功能失效
-        if(!VotePanel.activeInHierarchy){
-            Vote.GetComponent<VoteBehaviors>().ShowVotePanel();
+        _vb.alreadySelect = true;//讓skip以及選擇玩家等功能失效
+        if(!_vb.VotePanel.activeInHierarchy){
+            _vb.ShowVotePanel();
         }
-        CloseVotePanelBtn.SetActive(false);
-        SkipPanel.SetActive(true);
+        _vb.CloseVotePanelBtn.SetActive(false);
+        _vb.ChatPanel.SetActive(false);
+        _vb.SkipPanel.SetActive(true);
         int []voteIconIndex = new int [TotalPlayer];
         int skipIconIndex = 0;
         List<GameObject> storeShowIconList = new List<GameObject>();//為了將Icon重置
@@ -343,7 +342,7 @@ public class GameManager : MonoBehaviourPunCallbacks
                 if(voteSituation[i] != -1){//表示該名玩家有投票
                     voteIconIndex[voteSituation[i]-1]++;
                     //將對應的vote面板更改
-                    GameObject showIcon = VotePanel.transform.Find("Player" + voteSituation[i]).
+                    GameObject showIcon = _vb.VotePanel.transform.Find("Player" + voteSituation[i]).
                                                         transform.Find("P" + voteSituation[i] + "_IMG").
                                                         transform.Find("Icon").
                                                         transform.Find("Icon_" + voteIconIndex[voteSituation[i]-1]).gameObject;
@@ -359,7 +358,7 @@ public class GameManager : MonoBehaviourPunCallbacks
                 }
                 else{//表示沒投票或著是skip
                     skipIconIndex++;
-                    GameObject showIcon = VotePanel.transform.Find("SkipPanel").
+                    GameObject showIcon = _vb.VotePanel.transform.Find("SkipPanel").
                                                         transform.Find("Icon").
                                                         transform.Find("Icon_" + skipIconIndex).gameObject;
                     storeShowIconList.Add(showIcon);//將有變化的icon物件儲存以便重置
@@ -380,7 +379,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             
         }
         yield return new WaitForSeconds(5f);
-        Vote.GetComponent<VoteBehaviors>().CloseVotePanel();
+        _vb.CloseVotePanel();
         VoteUI.SetActive(false);//投票完接晚上
         //結算
         int maxVotes = 0;
@@ -626,7 +625,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     
     public IEnumerator GenerateProgressBar(float x, float y, float loadTime, bool isBreakDoor, int doorKey,Action callback){
         PlayerController pc = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>();
-        pc.allowMovement = false;
+        pc.allowMovement = false;//例如鎖門解鎖、狼人破門、醫生檢查，都無法移動
         progressBarBack.transform.position = new Vector2(x-progressBarBack.GetComponent<RectTransform>().sizeDelta.x/2, y);
         progressBar.transform.position = new Vector2(x-progressBar.GetComponent<RectTransform>().sizeDelta.x/2, y);
         progressBarBack.SetActive(true);
@@ -687,6 +686,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         musicManager.GetComponent<AudioSource>().clip = musicManager.dayBackgroundMusic;
         musicManager.GetComponent<AudioSource>().Play();
         Vote.SetActive(true);//這邊就要設定true是要進入script觸發start，為了讓所有人在投票panel中都是以正面顯示
+        _vb = Vote.GetComponent<VoteBehaviors>();
         InsideArea.SetActive(true);//開始需要辨別玩家位置
         gameStart = true;
     }
