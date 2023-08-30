@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     private int voteCount = 0;
     private int[] voteSituation = new int[TotalPlayer];//9個玩家
     
+    [SerializeField] GameObject microphone;
     [SerializeField] GameObject InsideArea;//要設active，不然會名字還沒改動就偵測到，導致出錯
     [SerializeField] GameObject waitingUI;
     [SerializeField] GameObject progressBarBack;
@@ -382,19 +383,14 @@ public class GameManager : MonoBehaviourPunCallbacks
         _vb.CloseVotePanel();
         VoteUI.SetActive(false);//投票完接晚上
         //結算
-        int maxVotes = 0;
         List<int> maxIndices = new List<int>();
+        int maxVoteCounts = voteIconIndex.Max();//得到該輪投票的最大值
         for(int i = 0; i < TotalPlayer; i++){
-            if(voteIconIndex[i] > maxVotes){
-                maxVotes = voteIconIndex[i];
-            }
-        }
-        for(int i = 0; i < TotalPlayer; i++){
-            if(voteIconIndex[i] == maxVotes){
+            if(voteIconIndex[i] == maxVoteCounts){
                 maxIndices.Add(i);
             }
         }
-        if(maxIndices.Count != 1){//表示本輪投票平局或是大家都放棄投票
+        if(maxIndices.Count != 1){//表示本輪投票有平局或是大家都放棄投票
             print("no player leave");
         }
         else{
@@ -688,6 +684,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         Vote.SetActive(true);//這邊就要設定true是要進入script觸發start，為了讓所有人在投票panel中都是以正面顯示
         _vb = Vote.GetComponent<VoteBehaviors>();
         GameObject.Find("NotebookUI").GetComponent<NoteBook>().enabled = true;
+        microphone.SetActive(true);
         InsideArea.SetActive(true);//開始需要辨別玩家位置
         gameStart = true;
     }

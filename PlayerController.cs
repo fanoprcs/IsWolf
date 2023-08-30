@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
         playerCareer = (Careers)_gm.playerMap[gameObject.GetComponent<PhotonView>().Owner][1];
         if(!gameObject.GetComponent<PhotonView>().IsMine)
             Destroy(gameObject.GetComponent<Rigidbody2D>());
-        else{//以玩家位置為聽眾
+        else{//如果該生成的玩家為自己則以自己玩家位置為聽眾
             this.gameObject.AddComponent<AudioListener>();
         }
         canLock = false;

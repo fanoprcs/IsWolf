@@ -17,12 +17,14 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
     [SerializeField]GameObject ResetSelectedBtn;
     [SerializeField]GameObject []already;
     [SerializeField]GameObject []dead;
+    MicrophoneManager _mc;
     GameManager _gm;
     int votePlayerKey;//1~9
     public bool alreadySelect;
     void Start()
     {
         _gm = GameObject.Find("GameManager").GetComponent<GameManager>();
+        _mc = GameObject.Find("Microphone").GetComponent<MicrophoneManager>();
         alreadySelect = false;
         votePlayerKey = -1;
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){
@@ -126,5 +128,8 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
             ChatPanel.SetActive(false);
         else
             ChatPanel.SetActive(true);
+    }
+    public void SwitchMicrophoneChatMode(GameObject micBtn){
+        _mc.ToggleMicrophone(micBtn);
     }
 }
