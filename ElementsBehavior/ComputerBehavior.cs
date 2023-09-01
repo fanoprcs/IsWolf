@@ -25,7 +25,7 @@ public class ComputerBehavior : MonoBehaviourPunCallbacks
     private bool status = false;
     public float radius;
     public int computerKey;
-    public int mode = 0;//白天要記得變回0
+    public int mode;//白天要記得變回0
     public int skinMode = 1;
     public int connectedKey = 0;
     
@@ -34,6 +34,7 @@ public class ComputerBehavior : MonoBehaviourPunCallbacks
     {
         radius = 0.5f;
         skinMode = 1;
+        mode = 0;
         _gm = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 

@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     private int voteCount = 0;
     private int[] voteSituation = new int[TotalPlayer];//9個玩家
     
+    
     [SerializeField] GameObject microphone;
     [SerializeField] GameObject InsideArea;//要設active，不然會名字還沒改動就偵測到，導致出錯
     [SerializeField] GameObject waitingUI;
@@ -129,7 +130,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         allocateCareer = allocateCareer.OrderBy(x => random.Next()).ToArray();
         allocateSkin = allocateSkin.OrderBy(x => random.Next()).ToArray();
         //test
-        int[] allocateCareerTest = {(int)Careers.doctor, (int)Careers.wolf, (int)Careers.wolf, (int)Careers.hunter, (int)Careers.human
+        int[] allocateCareerTest = {(int)Careers.wolf, (int)Careers.wolf, (int)Careers.doctor, (int)Careers.hunter, (int)Careers.human
                                 , (int)Careers.human, (int)Careers.hunter, (int)Careers.engineer, (int)Careers.wolf};
         GetComponent<PhotonView>().RPC("RpcInitCharacters", RpcTarget.All, allocateCareerTest, allocateSkin);
     }
@@ -208,6 +209,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     void RpcGameMode(int gameMode){
         mode = gameMode;
         if(mode == 0){//除了第一天白天接晚上之外，白天後面接討論環節
+            print("mode = 0");
             StartCoroutine(DayNightTimeBar((int)GamePhase.day , DayTime, () =>{
                 int nextMode;
                 if(dayNightCount == 1)
@@ -218,11 +220,13 @@ public class GameManager : MonoBehaviourPunCallbacks
             }));
         }
         else if(mode == 1){//晚上後面接白天
+            print("mode = 1");
             StartCoroutine(DayNightTimeBar((int)GamePhase.night , NightTime, () =>{  
                 SwitchToNextMode((int)GamePhase.day);
             }));
         }
         else if(mode == 2){//投票後面接續晚上
+            print("mode = 2");
             StartCoroutine(DayNightTimeBar((int)GamePhase.vote , VoteTime, () =>{
                 //先撥放動畫等，再switch
                 if(!playVoteAnimate){//如果有玩家還沒有投票且時間到的話進入這裡
@@ -255,7 +259,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             Date.text = "第五日";
         }
         if(modeStatus == 0){   
-            Date.text += " 白天";        
+            Date.text += " 白天"; 
             SetDayBehaviors();
         }
         else if(modeStatus == 1){
@@ -275,7 +279,6 @@ public class GameManager : MonoBehaviourPunCallbacks
             pc.GetComponent<ComputerBehavior>().mode = 0;
             pc.GetComponent<ComputerBehavior>().skinMode = 1;
         }
-        print(this.playerCareer);
         if(this.playerCareer == Careers.engineer){//工程師白天不能連線
             Engineer.GetComponent<EngineerBehaviors>().alreadyUsed = true;
         }
@@ -283,6 +286,20 @@ public class GameManager : MonoBehaviourPunCallbacks
             Wolf.GetComponent<WolfBehaviors>().canKilled = false;
             Wolf.GetComponent<WolfBehaviors>().alreadyBreak = true;
         }
+        if(this.playerCareer == Careers.wolf){//狼人白天不能講話
+            MicrophoneManager _mc = microphone.GetComponent<MicrophoneManager>();
+            _mc.wolfMicBtn.GetComponent<UnityEngine.UI.Button>().interactable = false;
+            
+            if(_mc.isMicrophoneEnabled)//如果正在啟用就關掉
+                _mc.ToggleMicrophone(_mc.wolfMicBtn);
+        }
+        if(dayNightCount != 1){//第一天以外才要重設(因為第一天還在等待中不應該播放音樂，之後晚上會換音樂因此要重設)
+            if(musicManager.GetComponent<AudioSource>().clip != musicManager.dayBackgroundMusic){//此處之後如果晚上有音樂要卡掉，目前這樣寫是為了不要重新播放音樂
+                musicManager.GetComponent<AudioSource>().clip = musicManager.dayBackgroundMusic;
+                musicManager.GetComponent<AudioSource>().Play();
+            }
+        }
+    
     }
     private void SetNightBehaviors(){//晚上
         IsDayTime = false;
@@ -294,8 +311,16 @@ public class GameManager : MonoBehaviourPunCallbacks
             Wolf.GetComponent<WolfBehaviors>().canKilled = true;//晚上才能殺人
             Wolf.GetComponent<WolfBehaviors>().alreadyBreak = false;//重置是否可以破門
         }
+        
+        if(this.playerCareer == Careers.wolf){//晚上狼人可以使用麥克風
+            microphone.GetComponent<MicrophoneManager>().wolfMicBtn.GetComponent<UnityEngine.UI.Button>().interactable = true;
+        }
+        else{//晚上，投票階段後，狼人以外的都不能聽到聲音
+            microphone.GetComponent<MicrophoneManager>().speaker.gameObject.SetActive(false);
+        }
+        
         /*播放晚上的配樂
-        musicManager.GetComponent<AudioSource>().clip = nightBackgroundMusic;
+        musicManager.GetComponent<AudioSource>().clip = musicManager.nightBackgroundMusic;
         musicManager.GetComponent<AudioSource>().Play();
         */
         //為了晚上增添加一層幕，室外變黑，並且在房間外看不到室內
@@ -316,7 +341,11 @@ public class GameManager : MonoBehaviourPunCallbacks
         for(int i = 0; i < TotalPlayer; i++){//將是否以投票icon初始化
             alreadyVoteIcon[i].SetActive(false);
         }
-        
+        /*
+            musicManager.GetComponent<AudioSource>().clip = musicManager.dayBackgroundMusic;
+            musicManager.GetComponent<AudioSource>().Play();
+        */
+        microphone.GetComponent<MicrophoneManager>().speaker.gameObject.SetActive(true);//投票階段所有人偷要聽到聲音
         VoteUI.SetActive(true);
         _vb.alreadySelect = false;
         _vb.VoteBtn.SetActive(true);
@@ -408,6 +437,9 @@ public class GameManager : MonoBehaviourPunCallbacks
             color.a = 0f;
             showImg.color = color;
         }
+        MicrophoneManager _mc = microphone.GetComponent<MicrophoneManager>();
+        if(_mc.isMicrophoneEnabled)//如果正在啟用就關掉
+            Vote.GetComponent<VoteBehaviors>().SwitchMicrophoneChatMode(microphone.GetComponent<MicrophoneManager>().voteMicBtn);
         //切換到晚上
         SwitchToNextMode((int)GamePhase.night);
     }

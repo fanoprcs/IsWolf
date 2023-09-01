@@ -6,6 +6,9 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
 {
     [SerializeField]UnityEngine.UI.Text []PlayerName;
     [SerializeField]GameObject []PlayerImg;//此欄位底下有放置icon的地方，要利用關聯位置來找到物件
+    [SerializeField]GameObject []micIcon;
+    public UnityEngine.Sprite micIconOn;
+    public UnityEngine.Sprite micIconOff;
     [SerializeField]UnityEngine.Sprite []PlayerIcon;
     public GameObject VotePanel;
     public GameObject ChatPanel;
@@ -130,6 +133,12 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
             ChatPanel.SetActive(true);
     }
     public void SwitchMicrophoneChatMode(GameObject micBtn){
+        if(_mc.isMicrophoneEnabled){
+            micIcon[PhotonNetwork.LocalPlayer.ActorNumber-1].GetComponent<UnityEngine.UI.Image>().sprite = micIconOff;
+        }
+        else{
+            micIcon[PhotonNetwork.LocalPlayer.ActorNumber-1].GetComponent<UnityEngine.UI.Image>().sprite = micIconOn;
+        }
         _mc.ToggleMicrophone(micBtn);
     }
 }

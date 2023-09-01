@@ -10,30 +10,26 @@ public class MicrophoneManager : MonoBehaviour
     public UnityEngine.Sprite microphoneOff;
     public Recorder recorder;
     public Speaker speaker;
+    public GameObject wolfMicBtn;
+    public GameObject voteMicBtn;
 
-    private bool isMicrophoneEnabled = false;
-    //private PunVoiceClient voiceClient;
-    void Start()
-    {
-        // 初始化 Photon 語音模塊
-       
-        //voiceClient = GetComponent<PunVoiceClient>();
-     
-        //voiceClient.ConnectAndJoinRoom();
-        
-        //print(voiceClient.ClientState);
+    public bool isMicrophoneEnabled = false;
+    private PunVoiceClient voiceClient;
+    void Start(){
+        voiceClient = GetComponent<PunVoiceClient>();
     }
-    
+    void Update(){
+        if(recorder.enabled)
+            Debug.Log("Is Recording: " + recorder.IsCurrentlyTransmitting);
+    }
     public void ToggleMicrophone(GameObject micBtn){
         if (isMicrophoneEnabled){
             micBtn.GetComponent<UnityEngine.UI.Image>().sprite = microphoneOff;
-            recorder.enabled = false;
-            speaker.enabled = false;
+            recorder.TransmitEnabled = false;
         }
         else{
             micBtn.GetComponent<UnityEngine.UI.Image>().sprite = microphoneOn;
-            recorder.enabled = true;
-            speaker.enabled = true;
+            recorder.TransmitEnabled = true;
         }
 
         isMicrophoneEnabled = !isMicrophoneEnabled;
