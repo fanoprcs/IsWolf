@@ -17,13 +17,16 @@ public class Settings : MonoBehaviourPunCallbacks
     void Update()
     {
        if (Input.GetKeyDown(KeyCode.Escape)) {
-            if(Option.activeInHierarchy){
-                BackToOption();
-                Option.SetActive(false);
-            }
-            else
-                Option.SetActive(true);
+            SwitchShowOption();
         } 
+    }
+    public void SwitchShowOption(){
+        if(Option.activeInHierarchy){
+            BackToOption();
+            Option.SetActive(false);
+        }
+        else
+            Option.SetActive(true);
     }
     public void BackToGame(){
         Option.SetActive(false);

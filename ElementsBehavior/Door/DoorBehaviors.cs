@@ -195,9 +195,10 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
     }
     public void RingTheBell(){
         print("ring the bell");
-        _gm.CallRpcRingTheBell(doorKey, PhotonNetwork.LocalPlayer.ActorNumber);//這邊會傳送這扇門是由誰按下了門鈴，得到CheckPlayerId
+        _gm.CallRpcRingTheBell(doorKey, PhotonNetwork.LocalPlayer.ActorNumber);//這邊會通知所有人這扇門是由誰按下了門鈴，所有人都可以得到CheckPlayerId
         
     }
+
     public void CheckPlayer(){
         canCheck = false;
         print("Player " + CheckPlayerId + " ring the bell");

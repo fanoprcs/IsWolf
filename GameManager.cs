@@ -35,28 +35,27 @@ public class GameManager : MonoBehaviourPunCallbacks
     public float DayTime = 5f;
     public float NightTime = 20f;
     public float VoteTime = 5f;
-
-    private NightMask _nm;
     public bool gameStart;
     public bool playVoteAnimate;
     private int voteCount = 0;
     private int[] voteSituation = new int[TotalPlayer];//9個玩家
-    
     
     [SerializeField] GameObject microphone;
     [SerializeField] GameObject InsideArea;//要設active，不然會名字還沒改動就偵測到，導致出錯
     [SerializeField] GameObject waitingUI;
     [SerializeField] GameObject progressBarBack;
     [SerializeField] GameObject progressBar;
-    [SerializeField] GameObject dayTimeBar;
+    
     //Vote
     [SerializeField] GameObject Vote;
     [SerializeField] GameObject VoteUI;
     private VoteBehaviors _vb;
     [SerializeField] GameObject []alreadyVoteIcon;
     //
-    [SerializeField] UnityEngine.UI.Text Date;
+    
     private MusicPlayer musicManager;
+    private NightMask _nm;
+    private PhaseTimePie _ptp;
     private IEnumerator WaitForAllPlayersLoadScene()
     {
         bool allPlayersLoadedScene = false;
@@ -105,6 +104,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             customProperties.Add("scene", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
             _nm = GameObject.Find("Mask").GetComponent<NightMask>();
+            _ptp = GameObject.Find("DayNightPie").GetComponent<PhaseTimePie>();
             mode = -1;
             dayNightCount = 0;
             SwitchDayNight(0);
@@ -210,7 +210,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         mode = gameMode;
         if(mode == 0){//除了第一天白天接晚上之外，白天後面接討論環節
             print("mode = 0");
-            StartCoroutine(DayNightTimeBar((int)GamePhase.day , DayTime, () =>{
+            StartCoroutine(_ptp.DayNightTimeBar((int)GamePhase.day , DayTime, () =>{
                 int nextMode;
                 if(dayNightCount == 1)
                     nextMode = (int)GamePhase.night;
@@ -221,13 +221,13 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         else if(mode == 1){//晚上後面接白天
             print("mode = 1");
-            StartCoroutine(DayNightTimeBar((int)GamePhase.night , NightTime, () =>{  
+            StartCoroutine(_ptp.DayNightTimeBar((int)GamePhase.night , NightTime, () =>{  
                 SwitchToNextMode((int)GamePhase.day);
             }));
         }
         else if(mode == 2){//投票後面接續晚上
             print("mode = 2");
-            StartCoroutine(DayNightTimeBar((int)GamePhase.vote , VoteTime, () =>{
+            StartCoroutine(_ptp.DayNightTimeBar((int)GamePhase.vote , VoteTime, () =>{
                 //先撥放動畫等，再switch
                 if(!playVoteAnimate){//如果有玩家還沒有投票且時間到的話進入這裡
                     playVoteAnimate = true;
@@ -244,30 +244,30 @@ public class GameManager : MonoBehaviourPunCallbacks
     void SwitchDayNight(int modeStatus){//記得換一天時，電腦要重製mode
         dayNightCount++;
         if(dayNightCount/3 == 0){
-            Date.text = "第一日";
+            _ptp.Date.text = "第一日";
         }
         else if(dayNightCount/3 == 1){
-            Date.text = "第二日";
+            _ptp.Date.text = "第二日";
         }
         else if(dayNightCount/3 == 2){
-            Date.text = "第三日";
+            _ptp.Date.text = "第三日";
         }
         else if(dayNightCount/3 == 3){
-            Date.text = "第四日";
+            _ptp.Date.text = "第四日";
         }
         else{
-            Date.text = "第五日";
+            _ptp.Date.text = "第五日";
         }
         if(modeStatus == 0){   
-            Date.text += " 白天"; 
+            _ptp.Date.text += " 白天"; 
             SetDayBehaviors();
         }
         else if(modeStatus == 1){
-            Date.text += " 晚上";
+            _ptp.Date.text += " 晚上";
             SetNightBehaviors();
         }
         else{
-            Date.text += " 討論";
+            _ptp.Date.text += " 討論";
             SetVoteBehaviors();
         }  
     }
@@ -510,9 +510,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public void CallRpcIsDead(string name, int causeOfDeath){
         GetComponent<PhotonView>().RPC("RpcIsDead", RpcTarget.All, name, causeOfDeath);
     }
-    public void CcDead(int deadMode){
-        RpcIsDead(FindPlayerByKey(PhotonNetwork.LocalPlayer.ActorNumber).NickName, deadMode);
-    }
+   
     [PunRPC]
     void RpcIsDead(string name, int causeOfDeath){
         GameObject playerObject = GameObject.Find(name + "(player)");
@@ -690,22 +688,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     }
     
     
-    IEnumerator DayNightTimeBar(int mode, float time, Action callback){
-        dayTimeBar.transform.localScale = new Vector3(0f, dayTimeBar.transform.localScale.y, dayTimeBar.transform.localScale.z);;
-        float elapsedTime = time;
-        while (elapsedTime > 0) {
-            if(mode == (int)GamePhase.vote){
-                if(playVoteAnimate){
-                    break;
-                }
-            }
-            float progress = elapsedTime / time;
-            dayTimeBar.transform.localScale = new Vector3(progress, dayTimeBar.transform.localScale.y, dayTimeBar.transform.localScale.z);;
-            yield return null;
-            elapsedTime -= Time.deltaTime;
-        }
-        callback.Invoke();
-    }
+    
     [PunRPC]
     void RpcGameStart(){//確認所有人都進入再switch
         waitingUI.SetActive(false);
