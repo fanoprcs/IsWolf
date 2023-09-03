@@ -8,6 +8,7 @@ public class PhaseTimePie : MonoBehaviour
     [SerializeField] UnityEngine.Sprite NightImg;
     [SerializeField] UnityEngine.Sprite VoteImg;
     public UnityEngine.UI.Text Date;
+    public UnityEngine.UI.Text Phase;
     [SerializeField] GameObject timeBar;
     [SerializeField] GameObject phaseTime;
     [SerializeField] GameObject[] phaseTimeLattice;

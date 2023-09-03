@@ -12,8 +12,10 @@ public class LobbyScene_Manager : MonoBehaviourPunCallbacks//目前設定只能�
     [SerializeField] UnityEngine.UI.Text status;
     [SerializeField] UnityEngine.Sprite selected;
     [SerializeField] GameObject []roomListPanel;
+    [SerializeField] UnityEngine.UI.Button JoinBtn;
     private string roomName = null;
     private string []roomNameArray = new string[10];
+    private int []playerCountArray = new int[10];
     void Start(){
         if(PhotonNetwork.IsConnected == true){
             if(PhotonNetwork.CurrentLobby == null)//當從room返回時候，雖然currentLobby還是一樣，但需要等待重新連線才能再度加入lobby，
@@ -21,6 +23,7 @@ public class LobbyScene_Manager : MonoBehaviourPunCallbacks//目前設定只能�
         }
         else
             UnityEngine.SceneManagement.SceneManager.LoadScene("StartScene");
+        JoinBtn.interactable = false;
     }
     public override void OnConnectedToMaster(){
         PhotonNetwork.JoinLobby();//從room返回，重新連線後在載入大廳資訊
@@ -37,6 +40,7 @@ public class LobbyScene_Manager : MonoBehaviourPunCallbacks//目前設定只能�
         foreach(Photon.Realtime.RoomInfo room in roomList){
             if(room.PlayerCount > 0){
                 roomNameArray[index] = room.Name;
+                playerCountArray[index] = room.PlayerCount;
                 roomListPanel[index].SetActive(true);
                 roomNameList[index].text = "  房間名稱: " + addSpaceInWords(room.Name, 30) + "      房間人數: " + room.PlayerCount + "/9";
                 index++;
@@ -45,10 +49,12 @@ public class LobbyScene_Manager : MonoBehaviourPunCallbacks//目前設定只能�
        
     }
     public void OnClickJoinRoom(){
-        if(roomName == null){
-            roomName = inputRoomName.text;
+        int index;
+        if(roomName != null){
+            index = System.Array.FindIndex(roomNameArray, item => item == roomName);
+            if(playerCountArray[index] < 9)
+                PhotonNetwork.JoinRoom(roomName);
         }
-        PhotonNetwork.JoinRoom(roomName);
     }
 
     public void OnClickEnterName(){
@@ -72,6 +78,7 @@ public class LobbyScene_Manager : MonoBehaviourPunCallbacks//目前設定只能�
             if(index == i){   
                 roomListPanel[i].GetComponent<UnityEngine.UI.Image>().sprite = selected;
                 roomName = GetRoomName(index);
+                JoinBtn.interactable = true;
             }
             else{
                 roomListPanel[i].GetComponent<UnityEngine.UI.Image>().sprite = null;

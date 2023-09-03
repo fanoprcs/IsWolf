@@ -131,7 +131,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         allocateSkin = allocateSkin.OrderBy(x => random.Next()).ToArray();
         //test
         int[] allocateCareerTest = {(int)Careers.wolf, (int)Careers.wolf, (int)Careers.doctor, (int)Careers.hunter, (int)Careers.human
-                                , (int)Careers.human, (int)Careers.hunter, (int)Careers.engineer, (int)Careers.wolf};
+                                , (int)Careers.engineer, (int)Careers.hunter, (int)Careers.engineer, (int)Careers.wolf};
         GetComponent<PhotonView>().RPC("RpcInitCharacters", RpcTarget.All, allocateCareerTest, allocateSkin);
     }
     [PunRPC]
@@ -259,15 +259,15 @@ public class GameManager : MonoBehaviourPunCallbacks
             _ptp.Date.text = "第五日";
         }
         if(modeStatus == 0){   
-            _ptp.Date.text += " 白天"; 
+            _ptp.Phase.text = "白天"; 
             SetDayBehaviors();
         }
         else if(modeStatus == 1){
-            _ptp.Date.text += " 晚上";
+            _ptp.Phase.text = "晚上";
             SetNightBehaviors();
         }
         else{
-            _ptp.Date.text += " 討論";
+            _ptp.Phase.text = "討論";
             SetVoteBehaviors();
         }  
     }
@@ -338,7 +338,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         for(int i = 0; i < TotalPlayer; i++){//將投票情形初始化為-1
             voteSituation[i] = -1;//玩家對應到1~9
         }
-        for(int i = 0; i < TotalPlayer; i++){//將是否以投票icon初始化
+        for(int i = 0; i < TotalPlayer; i++){//將是否已經投票的icon初始化
             alreadyVoteIcon[i].SetActive(false);
         }
         /*
@@ -408,7 +408,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             //撥放投票音效
             
         }
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(5f);//給大家五秒鐘的時間看投票結果
         _vb.CloseVotePanel();
         VoteUI.SetActive(false);//投票完接晚上
         //結算
@@ -438,7 +438,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             showImg.color = color;
         }
         MicrophoneManager _mc = microphone.GetComponent<MicrophoneManager>();
-        if(_mc.isMicrophoneEnabled)//如果正在啟用就關掉
+        if(_mc.isMicrophoneEnabled)//如果正在啟用麥克風就關掉
             Vote.GetComponent<VoteBehaviors>().SwitchMicrophoneChatMode(microphone.GetComponent<MicrophoneManager>().voteMicBtn);
         //切換到晚上
         SwitchToNextMode((int)GamePhase.night);

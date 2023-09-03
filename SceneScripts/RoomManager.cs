@@ -16,6 +16,9 @@ public class RoomManager : MonoBehaviourPunCallbacks
         if(PhotonNetwork.CurrentRoom == null)
             UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
         else{
+            if(PhotonNetwork.CurrentRoom.PlayerCount > 9){//連線時間問題等，可能兩個人同時加入，進房間後再判斷一次
+                UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
+            }
             textRoomName.text = addSpaceInWords(PhotonNetwork.CurrentRoom.Name, 10);
             chatSb = "";
             startGame.interactable = PhotonNetwork.IsMasterClient;//設定是否可以互動(這樣表示出發按鈕只有master有權)

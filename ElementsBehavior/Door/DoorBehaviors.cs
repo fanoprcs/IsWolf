@@ -151,6 +151,10 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
             if(!whetherLock)
                 _gm.CallRpcDoorSwitchStatus(doorKey, true);
             else{
+                string richText = "\n<color=#" + ColorUtility.ToHtmlStringRGB(Color.blue) + ">";
+                richText += "門已上鎖";
+                richText += "</color>";
+                chatRoom.text += richText;
                 //門鎖住的音效
                 print("已經上鎖");
             }

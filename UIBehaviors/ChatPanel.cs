@@ -33,10 +33,10 @@ public class ChatPanel : MonoBehaviourPunCallbacks
         string richText = "";
         if(targetPlayer.IsLocal){
             richText = "\n<color=#" + ColorUtility.ToHtmlStringRGB(Color.blue) + ">";
-            richText += targetPlayer.NickName + " ( " + targetPlayer.ActorNumber + " ) : </color>";
+            richText += targetPlayer.NickName + "(" + targetPlayer.ActorNumber + ") : </color>";
         }
         else{
-            richText += targetPlayer.NickName + " ( " + targetPlayer.ActorNumber + " ) : ";
+            richText += targetPlayer.NickName + "(" + targetPlayer.ActorNumber + ") : ";
         }
         chatSb += "\n" + richText + (string)changedProps["chatRoom"];
         chatRoom.text = chatSb;
