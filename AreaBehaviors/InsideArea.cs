@@ -4,10 +4,10 @@ using UnityEngine;
 using Photon.Pun;
 public class InsideArea : MonoBehaviourPunCallbacks
 {
-    private GameManager _gm;
+    [SerializeField] GameManager _gm;
     private NightMask _nm;
     void Start() {
-        _gm = GameObject.Find("GameManager").GetComponent<GameManager>();
+        
         _nm = GameObject.Find("Mask").GetComponent<NightMask>();
     }
     private void OnTriggerEnter2D(Collider2D other)
@@ -23,9 +23,11 @@ public class InsideArea : MonoBehaviourPunCallbacks
             _p.canRing = false;
             _p.canPeek = true;
             _p.canWatch = true;
-            _gm.CallRpcSwitchArea(PhotonNetwork.LocalPlayer.NickName, false);
+            
+            if(_gm.gameStart)
+                _gm.CallRpcSwitchArea(PhotonNetwork.LocalPlayer.NickName, false);
             if(!_gm.IsDayTime && other.gameObject.GetComponent<PhotonView>().IsMine){//本地的才會改動
-                _nm.SwitchToInside();
+                _nm.SwitchToInside();//夜晚遮罩的切換(包含切畫角色顯示、名字等)
             }
             
             
@@ -45,9 +47,10 @@ public class InsideArea : MonoBehaviourPunCallbacks
             _p.canRing = true;
             _p.canPeek = false;
             _p.canWatch = false;
-            _gm.CallRpcSwitchArea(PhotonNetwork.LocalPlayer.NickName, true);
+            if(_gm.gameStart)
+                _gm.CallRpcSwitchArea(PhotonNetwork.LocalPlayer.NickName, true);
             if(!_gm.IsDayTime && other.gameObject.GetComponent<PhotonView>().IsMine){//本地的才會改動
-                _nm.SwitchToOutside();
+                _nm.SwitchToOutside();//夜晚遮罩的切換(包含切畫角色顯示、名字等)
             }
         }
     }

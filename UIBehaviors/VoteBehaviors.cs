@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using Photon.Voice.PUN;
 public class VoteBehaviors : MonoBehaviourPunCallbacks
 {
     [SerializeField]UnityEngine.UI.Text []PlayerName;
@@ -27,7 +28,7 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
     void Start()
     {
         _gm = GameObject.Find("GameManager").GetComponent<GameManager>();
-        _mc = GameObject.Find("Microphone").GetComponent<MicrophoneManager>();
+        _mc = FindObjectOfType<PunVoiceClient>().GetComponent<MicrophoneManager>();
         alreadySelect = false;
         votePlayerKey = -1;
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){

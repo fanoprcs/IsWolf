@@ -19,8 +19,8 @@ public class MicrophoneManager : MonoBehaviour
         voiceClient = GetComponent<PunVoiceClient>();
     }
     void Update(){
-        if(recorder.enabled)
-            Debug.Log("Is Recording: " + recorder.IsCurrentlyTransmitting);
+        //if(recorder.enabled)
+            //Debug.Log("Is Recording: " + recorder.IsCurrentlyTransmitting);
     }
     public void ToggleMicrophone(GameObject micBtn){
         if (isMicrophoneEnabled){

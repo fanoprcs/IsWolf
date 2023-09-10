@@ -157,43 +157,13 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Generate(){
         float spawnX = this.playerKey;
         float spawnY = -3;/*UnityEngine.Random.Range(-3, 3);*/
-        this.skin = 1;// 測試用，之後要刪除
-        switch (this.skin)
-        {
-            case 1:
-                PhotonNetwork.Instantiate("Players/Player_1", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-            case 2:
-                PhotonNetwork.Instantiate("Players/Player_2", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-            case 3:
-                PhotonNetwork.Instantiate("Players/Player_3", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-            case 4:
-                PhotonNetwork.Instantiate("Players/Player_4", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-            case 5:
-                PhotonNetwork.Instantiate("Players/Player_5", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-            case 6:
-                PhotonNetwork.Instantiate("Players/Player_6", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-            case 7:
-                PhotonNetwork.Instantiate("Players/Player_7", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-            case 8:
-                PhotonNetwork.Instantiate("Players/Player_8", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-            default:
-                PhotonNetwork.Instantiate("Players/Player_9", new Vector3(spawnX, spawnY, 0), Quaternion.identity);
-                break;
-        }
-        
+        print("Players/Player_" + this.skin.ToString());
+        PhotonNetwork.Instantiate("Players/Player_" + skin.ToString(), new Vector3(spawnX, spawnY, 0), Quaternion.identity);  
         int index = 0;
         foreach(GameObject pc in Computer){//每台電腦都要加到gamemanager的宣告中
             pc.GetComponent<ComputerBehavior>().enabled = true;
             pc.GetComponent<ComputerBehavior>().computerKey = index;
-            if(playerMap[FindPlayerByKey(index+1)][1] == (int)Careers.engineer){
+            if(playerMap[FindPlayerByKey(index+1)][1] == (int)Careers.engineer){//所有玩家都需要知道工程師的電腦是哪台
                 pc.GetComponent<ComputerBehavior>().belongsToEngineer = true;
             }
             index++;
@@ -318,7 +288,16 @@ public class GameManager : MonoBehaviourPunCallbacks
         else{//晚上，投票階段後，狼人以外的都不能聽到聲音
             microphone.GetComponent<MicrophoneManager>().speaker.gameObject.SetActive(false);
         }
-        
+        foreach(var kvp in PhotonNetwork.CurrentRoom.Players){//重設一次裡面或是外面
+            if(PhotonNetwork.LocalPlayer != kvp.Value && playerMap[kvp.Value][0] == 1){//如果還活著且不是自己
+                GameObject player = GameObject.Find(kvp.Value.NickName + "(player)");
+                if(player.GetComponent<PlayerController>().canRing){//如果我在裡面且其他玩家在外面
+                    player.GetComponent<Animator>().SetBool("night_mask", true);
+                    GameObject.Find(kvp.Value.NickName + "(player)").transform.Find("Canvas")
+                    .transform.Find("Name").gameObject.GetComponent<UnityEngine.UI.Text>().text = "";
+                }
+            }
+        }
         /*播放晚上的配樂
         musicManager.GetComponent<AudioSource>().clip = musicManager.nightBackgroundMusic;
         musicManager.GetComponent<AudioSource>().Play();
@@ -628,15 +607,15 @@ public class GameManager : MonoBehaviourPunCallbacks
         db.CheckPlayerId = playerKey;
     }
     public void CallRpcSwitchAnimatorNightmaskBool(string playerName, bool status){
-        GetComponent<PhotonView>().RPC("RpcSwitchAnimatorNightmaskBool", RpcTarget.Others, playerName, status);
+        GetComponent<PhotonView>().RPC("RpcSwitchAnimatorNightmaskBool", RpcTarget.Others, playerName, status);//自己以外的呼叫
     }
     [PunRPC]
-    public void RpcSwitchAnimatorNightmaskBool(string playerName, bool status){
+    public void RpcSwitchAnimatorNightmaskBool(string playerName, bool status){//status表示其他玩家移動到外面還裡面
         if(!IsDayTime)
-            if(GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>().canPeek){
-                //print(PhotonNetwork.LocalPlayer.NickName + " can peek");
-                //print(playerName + " GetComponent<Animator>" + status);
+            if(GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>().canPeek){//本地玩家在室內的話
                 GameObject.Find(playerName+ "(player)").GetComponent<Animator>().SetBool("night_mask", status);
+                GameObject.Find(playerName + "(player)").transform.Find("Canvas")
+                    .transform.Find("Name").GetComponent<UnityEngine.UI.Text>().text = (status == true) ? "" : playerName;
             }
     }
     public void CallRpcSwitchArea(string playerName, bool status){

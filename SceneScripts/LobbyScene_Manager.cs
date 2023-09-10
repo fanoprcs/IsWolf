@@ -42,7 +42,14 @@ public class LobbyScene_Manager : MonoBehaviourPunCallbacks//目前設定只能�
                 roomNameArray[index] = room.Name;
                 playerCountArray[index] = room.PlayerCount;
                 roomListPanel[index].SetActive(true);
-                roomNameList[index].text = "  房間名稱: " + addSpaceInWords(room.Name, 30) + "      房間人數: " + room.PlayerCount + "/9";
+                roomNameList[index].text = "  房間名稱: " + room.Name + "      房間人數: " + room.PlayerCount + "/9";
+                index++;
+            }
+            else{
+                roomNameArray[index] = "";
+                playerCountArray[index] = 0;
+                roomListPanel[index].SetActive(false);
+                roomNameList[index].text = "";
                 index++;
             }
         }
@@ -88,7 +95,9 @@ public class LobbyScene_Manager : MonoBehaviourPunCallbacks//目前設定只能�
     }
     public void OnClickCreateRoom(){
         roomName = CreateRoomName();
+        print(1);
         PhotonNetwork.CreateRoom(roomName);
+        print(2);
         
     }
     private bool CheckNickName(string checkName){

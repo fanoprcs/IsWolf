@@ -20,6 +20,8 @@ public class RoomManager : MonoBehaviourPunCallbacks
                 UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
             }
             textRoomName.text = addSpaceInWords(PhotonNetwork.CurrentRoom.Name, 10);
+
+            
             chatSb = "";
             startGame.interactable = PhotonNetwork.IsMasterClient;//設定是否可以互動(這樣表示出發按鈕只有master有權)
             UpdatePlayerList();
