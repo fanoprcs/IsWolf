@@ -130,6 +130,16 @@ public class ComputerBehavior : MonoBehaviourPunCallbacks
             }
         }
     }
+    public void CloseComputerPanel(){
+        _pc = GameObject.Find(PhotonNetwork.LocalPlayer.NickName + "(player)").GetComponent<PlayerController>();
+        if(ComputerPanel.activeInHierarchy){
+            ComputerPanel.SetActive(false);
+            if(skinMode != 3){
+                _gm.CallRpcPcSwitchStatus(computerKey, 1);
+            }
+            _pc.allowMovement = true;
+        }
+    }
     public void ToLittleGame(){
         print("Game");
     }

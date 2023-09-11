@@ -79,11 +79,13 @@ public class DoorBehaviors : MonoBehaviourPunCallbacks
                 if(me.GetComponent<PlayerController>().canLock){//是否在可以破門的區域
                     if(!whetherLock){//如果沒鎖門
                         LockBtn.SetActive(true);
+                        UnlockBtn.SetActive(false);
                         LockBtn.GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
                         LockBtn.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(LockDoor);
                     }
                     else{//如果是鎖門
                         UnlockBtn.SetActive(true);
+                        LockBtn.SetActive(false);
                         UnlockBtn.GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
                         UnlockBtn.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(UnlockDoor);
                     }

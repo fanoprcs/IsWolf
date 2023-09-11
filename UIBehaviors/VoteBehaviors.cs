@@ -17,8 +17,8 @@ public class VoteBehaviors : MonoBehaviourPunCallbacks
     public GameObject SkipPanel;
     public GameObject VoteBtn;
     [SerializeField]GameObject SkipBtn;
-    [SerializeField]GameObject CheckVoteBtn;
-    [SerializeField]GameObject ResetSelectedBtn;
+    public GameObject CheckVoteBtn;
+    public GameObject ResetSelectedBtn;
     [SerializeField]GameObject []already;
     [SerializeField]GameObject []dead;
     MicrophoneManager _mc;

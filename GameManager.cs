@@ -136,7 +136,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     }
     [PunRPC]
     void RpcInitCharacters(int[] allocateCareer, int[] allocateSkin){
-        print("init");
+        print("init character");
         foreach(var kvp in PhotonNetwork.CurrentRoom.Players){//每個玩家的kvp 順序不同，因此要利用kvp.Value.ActorNumber分配
             print(kvp.Value.NickName);
             playerMap[kvp.Value] = new List<int>();
@@ -157,7 +157,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Generate(){
         float spawnX = this.playerKey;
         float spawnY = -3;/*UnityEngine.Random.Range(-3, 3);*/
-        print("Players/Player_" + this.skin.ToString());
         PhotonNetwork.Instantiate("Players/Player_" + skin.ToString(), new Vector3(spawnX, spawnY, 0), Quaternion.identity);  
         int index = 0;
         foreach(GameObject pc in Computer){//每台電腦都要加到gamemanager的宣告中
@@ -172,14 +171,14 @@ public class GameManager : MonoBehaviourPunCallbacks
         foreach(GameObject door in Door){//每個門都要加到gameManager的宣告中
             door.GetComponent<DoorBehaviors>().doorKey = index;
             index++;
-        }        
+        }      
     }
     
     [PunRPC]
     void RpcGameMode(int gameMode){
         mode = gameMode;
         if(mode == 0){//除了第一天白天接晚上之外，白天後面接討論環節
-            print("mode = 0");
+            print("----進入白天----");
             StartCoroutine(_ptp.DayNightTimeBar((int)GamePhase.day , DayTime, () =>{
                 int nextMode;
                 if(dayNightCount == 1)
@@ -190,13 +189,13 @@ public class GameManager : MonoBehaviourPunCallbacks
             }));
         }
         else if(mode == 1){//晚上後面接白天
-            print("mode = 1");
+            print("----進入晚上----");
             StartCoroutine(_ptp.DayNightTimeBar((int)GamePhase.night , NightTime, () =>{  
                 SwitchToNextMode((int)GamePhase.day);
             }));
         }
         else if(mode == 2){//投票後面接續晚上
-            print("mode = 2");
+            print("----投票階段----");
             StartCoroutine(_ptp.DayNightTimeBar((int)GamePhase.vote , VoteTime, () =>{
                 //先撥放動畫等，再switch
                 if(!playVoteAnimate){//如果有玩家還沒有投票且時間到的話進入這裡
@@ -320,6 +319,9 @@ public class GameManager : MonoBehaviourPunCallbacks
         for(int i = 0; i < TotalPlayer; i++){//將是否已經投票的icon初始化
             alreadyVoteIcon[i].SetActive(false);
         }
+        foreach(GameObject door in Door){//每個門都要加到gameManager的宣告中
+            door.GetComponent<DoorBehaviors>().whetherLock = false;
+        } 
         /*
             musicManager.GetComponent<AudioSource>().clip = musicManager.dayBackgroundMusic;
             musicManager.GetComponent<AudioSource>().Play();
@@ -339,6 +341,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             _vb.ShowVotePanel();
         }
         _vb.CloseVotePanelBtn.SetActive(false);
+        _vb.CheckVoteBtn.SetActive(false);
+        _vb.ResetSelectedBtn.SetActive(false);
         _vb.ChatPanel.SetActive(false);
         _vb.SkipPanel.SetActive(true);
         int []voteIconIndex = new int [TotalPlayer];
